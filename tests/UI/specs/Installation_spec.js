@@ -47,13 +47,13 @@ describe("Installation", function () {
 
     it("should display the system check page when next is clicked on the first page", function (done) {
         expect.screenshot("system_check").to.be.capture(function (page) {
-            page.click('.submit');
+            page.click('.next-step .btn');
         }, done);
     });
 
     it("should display the database setup page when next is clicked on the system check page", function (done) {
         expect.screenshot("db_setup").to.be.capture(function (page) {
-            page.click('.submit');
+            page.click('.next-step .btn');
         }, done);
     });
 
