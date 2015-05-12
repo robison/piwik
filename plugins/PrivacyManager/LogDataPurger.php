@@ -14,7 +14,7 @@ use Piwik\DataAccess\RawLogDao;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Log;
-use Piwik\LogPurger;
+use Piwik\LogDeleter;
 use Piwik\Piwik;
 
 /**
@@ -40,7 +40,7 @@ class LogDataPurger
     /**
      * TODO
      *
-     * @var LogPurger
+     * @var LogDeleter
      */
     private $logPurger;
 
@@ -67,7 +67,7 @@ class LogDataPurger
      * @param int $maxRowsToDeletePerQuery The maximum number of rows to delete in one query. Used to
      *                                     make sure log tables aren't locked for too long.
      */
-    public function __construct($deleteLogsOlderThan, $maxRowsToDeletePerQuery, LogPurger $logPurger = null, RawLogDao $rawLogDao = null)
+    public function __construct($deleteLogsOlderThan, $maxRowsToDeletePerQuery, LogDeleter $logPurger = null, RawLogDao $rawLogDao = null)
     {
         $this->deleteLogsOlderThan = $deleteLogsOlderThan;
         $this->maxRowsToDeletePerQuery = $maxRowsToDeletePerQuery;
