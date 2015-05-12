@@ -29,6 +29,7 @@ return array(
         $backend = $c->get('Piwik\Cache\Backend');
         $cacheId = $c->get('cache.eager.cache_id');
 
+        // TODO: move tracker specific stuff to tracker.php.
         if (SettingsServer::isTrackerApiRequest()) {
             $eventToPersist = 'Tracker.end';
             $cacheId .= 'tracker';

@@ -11,8 +11,6 @@ namespace Piwik\Application;
  * TODO
  *
  * TODO:
- * - create base Application class
- * - create Tracker Application
  *   * use TrackerApplication in LocalTracker
  * - create Console Application
  * - create Web Application
@@ -26,7 +24,17 @@ abstract class Application
 
     public function __construct(Environment $environment)
     {
+        $environment->init();
+
         $this->environment = $environment;
         $this->environment->getContainer()->set('Piwik\Application\Application', $this);
+    }
+
+    /**
+     * TODO
+     */
+    public function getEnvironment()
+    {
+        return $this->environment;
     }
 }

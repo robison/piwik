@@ -15,6 +15,7 @@ use Piwik\Application\Kernel\PluginList;
 use Piwik\Container\ContainerFactory;
 use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
+use Piwik\Plugin\Manager;
 
 /**
  * Encapsulates Piwik environment setup and access.
@@ -86,6 +87,8 @@ class Environment
         $this->validateEnvironment();
 
         Piwik::postEvent('Environment.bootstrapped'); // this event should be removed eventually
+
+        $this->doPostContainerCreatedSetup();
     }
 
     /**
@@ -153,6 +156,13 @@ class Environment
     protected function getPluginList()
     {
         return new PluginList($this->getGlobalSettingsCached());
+    }
+
+    protected function doPostContainerCreatedSetup()
+    {
+        /** @var Manager $manager */
+        $manager = $this->container->get('Piwik\Plugin\Manager');
+        $manager->loadActivatedPlugins();
     }
 
     private function validateEnvironment()

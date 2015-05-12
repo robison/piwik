@@ -8,11 +8,6 @@
  * @package Piwik
  */
 
-use Piwik\SettingsServer;
-use Piwik\Tracker\RequestSet;
-use Piwik\Tracker;
-use Piwik\Tracker\Handler;
-
 // Note: if you wish to debug the Tracking API please see this documentation:
 // http://developer.piwik.org/api-reference/tracking-api#debugging-the-tracker
 
@@ -49,32 +44,7 @@ require_once PIWIK_INCLUDE_PATH . '/core/Tracker/Cache.php';
 require_once PIWIK_INCLUDE_PATH . '/core/Tracker/Request.php';
 require_once PIWIK_INCLUDE_PATH . '/core/Cookie.php';
 
-// TODO should move to Tracker application class later. currently needed for environment validation.
-SettingsServer::setIsTrackerApiRequest();
+$trackerApp = new \Piwik\Tracker\TrackerApplication();
+$returnCode = $trackerApp->track();
 
-$environment = new \Piwik\Application\Environment('tracker');
-$environment->init();
-
-Tracker::loadTrackerEnvironment();
-
-$tracker    = new Tracker();
-$requestSet = new RequestSet();
-
-ob_start();
-
-try {
-    $handler  = Handler\Factory::make();
-    $response = $tracker->main($handler, $requestSet);
-
-    if (!is_null($response)) {
-        echo $response;
-    }
-
-} catch (Exception $e) {
-    echo "Error:" . $e->getMessage();
-    exit(1);
-}
-
-if (ob_get_level() > 1) {
-    ob_end_flush();
-}
+exit($returnCode);

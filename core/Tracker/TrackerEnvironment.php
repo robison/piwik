@@ -9,7 +9,10 @@
 namespace Piwik\Tracker;
 
 use Piwik\Application\Environment;
-use Piwik\Application\Kernel\PluginList;
+use Piwik\Application\Kernel\GlobalSettingsProvider;
+use Piwik\Common;
+use Piwik\Plugin\Manager;
+use Piwik\SettingsServer;
 
 /**
  * TODO
@@ -21,8 +24,38 @@ class TrackerEnvironment extends Environment
         parent::__construct('tracker', $definitions);
     }
 
-    protected function getPluginList()
+    public function init()
     {
-        return new TrackerPluginList($this->getGlobalSettingsCached());
+        SettingsServer::setIsTrackerApiRequest(); // TODO: do this here and remove method in SettingsServer. move to doPostContainerCreatedSetup() also. should not need if no DI config file uses it (currently global.php does)
+
+        parent::init();
+    }
+
+    protected function doPostContainerCreatedSetup()
+    {
+        $GLOBALS['PIWIK_TRACKER_DEBUG'] = $this->isDebugEnabled();
+
+        /** @var Manager $manager */
+        $manager = $this->getContainer()->get('Piwik\Plugin\Manager');
+        $manager->loadTrackerPlugins();
+    }
+
+    private function isDebugEnabled()
+    {
+        /** @var GlobalSettingsProvider $settingsProvider */
+        $settingsProvider = $this->getContainer()->get('Piwik\Application\Kernel\GlobalSettingsProvider');
+        $trackerSection = $settingsProvider->getSection('Tracker');
+
+        $debug = (bool) $trackerSection['debug'];
+        if ($debug) {
+            return true;
+        }
+
+        $debugOnDemand = (bool) $trackerSection['debug_on_demand'];
+        if ($debugOnDemand) {
+            return (bool) Common::getRequestVar('debug', false);
+        }
+
+        return false;
     }
 }
