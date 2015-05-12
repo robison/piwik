@@ -85,16 +85,8 @@ class LogDataPurger
      */
     public function purgeData()
     {
-        $dateStart = Date::factory("today")->subDay($this->deleteLogsOlderThan); // TODO: move logic to constructor
-        $conditions = array(
-            array('visit_last_action_time', '<', $dateStart->getDatetime())
-        );
-
-        $logPurger = $this->logPurger;
-        $this->rawLogDao->forAllLogs('log_visit', array('idvisit'), $conditions, $this->logIterationStepSize, function ($rows) use ($logPurger) {
-            $ids = array_map('reset', $rows);
-            $logPurger->deleteVisits($ids);
-        });
+        $dateUpperLimit = Date::factory("today")->subDay($this->deleteLogsOlderThan); // TODO: move logic to constructor
+        $this->logPurger->deleteVisitsFor($start = null, $dateUpperLimit->getDatetime());
 
         $logTables = self::getDeleteTableLogTables();
 
@@ -106,7 +98,7 @@ class LogDataPurger
             Log::warning($logMessage);
         }
 
-        // optimize table overhead after deletion // TODO: logs:delete command should allow optimization
+        // optimize table overhead after deletion // TODO: logs:delete command should allow table optimization
         Db::optimizeTables($logTables);
     }
 
