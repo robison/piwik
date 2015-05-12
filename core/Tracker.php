@@ -138,6 +138,8 @@ class Tracker
     /**
      * Used to initialize core Piwik components on a piwik.php request
      * Eg. when cache is missed and we will be calling some APIs to generate cache
+     *
+     * TODO: remove the use of this method (& then the method)
      */
     public static function initCorePiwikInTrackerMode()
     {
@@ -156,7 +158,7 @@ class Tracker
                 Db::createDatabaseObject();
             }
 
-            PluginManager::getInstance()->loadCorePluginsDuringTracker();
+            PluginManager::getInstance()->loadCorePluginsDuringTracker(); //TODO: remove this method in Plugin\Manager.
         }
     }
 
@@ -305,23 +307,5 @@ class Tracker
                 Common::sendResponseCode(500);
             }
         });
-    }
-
-    private static function isDebugEnabled()
-    {
-        try {
-            $debug = (bool) TrackerConfig::getConfigValue('debug');
-            if ($debug) {
-                return true;
-            }
-
-            $debugOnDemand = (bool) TrackerConfig::getConfigValue('debug_on_demand');
-            if ($debugOnDemand) {
-                return (bool) Common::getRequestVar('debug', false);
-            }
-        } catch(Exception $e) {
-        }
-
-        return false;
     }
 }

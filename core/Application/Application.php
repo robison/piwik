@@ -14,6 +14,10 @@ namespace Piwik\Application;
  *   * use TrackerApplication in LocalTracker
  * - create Console Application
  * - create Web Application
+ *
+ * TODO: applications should have shutdown logic so memory is cleaned up when using an Application class inside
+ *       execution of another. perhaps there could be a Application::doWithApp($callback) method that creates/cleans up
+ *       an application.
  */
 abstract class Application
 {
