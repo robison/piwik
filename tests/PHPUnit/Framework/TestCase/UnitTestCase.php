@@ -10,8 +10,6 @@ namespace Piwik\Tests\Framework\TestCase;
 
 use Piwik\Application\Environment;
 use Piwik\Application\Kernel\GlobalSettingsProvider;
-use Piwik\Container\StaticContainer;
-use Piwik\EventDispatcher;
 use Piwik\Tests\Framework\Mock\File;
 
 /**
