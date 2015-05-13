@@ -8,6 +8,7 @@
 
 namespace Piwik\Tests\Unit\Translation\Loader;
 
+use Piwik\Application\Kernel\GlobalSettingsProvider;
 use Piwik\Translation\Loader\JsonFileLoader;
 use Piwik\Translation\Translator;
 
@@ -19,7 +20,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
     public function test_translate_shouldReturnTranslationId_ifNoTranslationFound()
     {
         $loader = $this->createLoader();
-        $translator = new Translator($loader, array());
+        $translator = new Translator($loader, GlobalSettingsProvider::getSingletonInstance(), array());
 
         $this->assertEquals('General_foo', $translator->translate('General_foo'));
     }
@@ -31,7 +32,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
                 'foo' => 'Hello world',
             ),
         ));
-        $translator = new Translator($loader, array());
+        $translator = new Translator($loader, GlobalSettingsProvider::getSingletonInstance(), array());
 
         $this->assertEquals('Hello world', $translator->translate('General_foo'));
     }
@@ -43,14 +44,14 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
                 'foo' => 'Hello %s',
             ),
         ));
-        $translator = new Translator($loader, array());
+        $translator = new Translator($loader, GlobalSettingsProvider::getSingletonInstance(), array());
 
         $this->assertEquals('Hello John', $translator->translate('General_foo', 'John'));
     }
 
     public function test_translate_withADifferentLanguage()
     {
-        $translator = new Translator(new JsonFileLoader(), array(__DIR__ . '/Loader/fixtures/dir1'));
+        $translator = new Translator(new JsonFileLoader(), GlobalSettingsProvider::getSingletonInstance(), array(__DIR__ . '/Loader/fixtures/dir1'));
 
         $this->assertEquals('Hello', $translator->translate('General_test1'));
 
@@ -61,14 +62,14 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function test_translate_shouldFallback_ifTranslationNotFound()
     {
-        $translator = new Translator(new JsonFileLoader(), array(__DIR__ . '/Loader/fixtures/dir1'));
+        $translator = new Translator(new JsonFileLoader(), GlobalSettingsProvider::getSingletonInstance(), array(__DIR__ . '/Loader/fixtures/dir1'));
         $translator->setCurrentLanguage('fr');
         $this->assertEquals('Hello', $translator->translate('General_test2'));
     }
 
     public function test_addDirectory_shouldImportNewTranslations()
     {
-        $translator = new Translator(new JsonFileLoader(), array(__DIR__ . '/Loader/fixtures/dir1'));
+        $translator = new Translator(new JsonFileLoader(), GlobalSettingsProvider::getSingletonInstance(), array(__DIR__ . '/Loader/fixtures/dir1'));
         // translation not found
         $this->assertEquals('General_test3', $translator->translate('General_test3'));
 
@@ -79,7 +80,7 @@ class TranslatorTest extends \PHPUnit_Framework_TestCase
 
     public function test_addDirectory_shouldImportOverExistingTranslations()
     {
-        $translator = new Translator(new JsonFileLoader(), array(__DIR__ . '/Loader/fixtures/dir1'));
+        $translator = new Translator(new JsonFileLoader(), GlobalSettingsProvider::getSingletonInstance(), array(__DIR__ . '/Loader/fixtures/dir1'));
         $this->assertEquals('Hello', $translator->translate('General_test2'));
 
         $translator->addDirectory(__DIR__ . '/Loader/fixtures/dir2');
