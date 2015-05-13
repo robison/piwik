@@ -288,17 +288,6 @@ class Tracker
         PluginManager::getInstance()->setTrackerPluginsNotToLoad($pluginsDisabled);
     }
 
-    protected function loadTrackerPlugins()
-    {
-        try {
-            $pluginManager  = PluginManager::getInstance();
-            $pluginsTracker = $pluginManager->loadTrackerPlugins();
-            Common::printDebug("Loading plugins: { " . implode(", ", $pluginsTracker) . " }");
-        } catch (Exception $e) {
-            Common::printDebug("ERROR: " . $e->getMessage());
-        }
-    }
-
     private function handleFatalErrors()
     {
         register_shutdown_function(function () {

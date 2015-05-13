@@ -66,6 +66,13 @@ class Environment
     private $pluginList;
 
     /**
+     * TODO
+     *
+     * @var int
+     */
+    private $staticContainerIndex;
+
+    /**
      * @param string $environment
      * @param array $definitions
      */
@@ -82,13 +89,18 @@ class Environment
     {
         $this->container = $this->createContainer();
 
-        StaticContainer::set($this->container);
+        $this->staticContainerIndex = StaticContainer::push($this->container);
 
         $this->validateEnvironment();
 
         Piwik::postEvent('Environment.bootstrapped'); // this event should be removed eventually
 
         $this->doPostContainerCreatedSetup();
+    }
+
+    public function __destruct()
+    {
+        StaticContainer::pop($this->staticContainerIndex);
     }
 
     /**

@@ -20,9 +20,9 @@ use DI\Container;
 class StaticContainer
 {
     /**
-     * @var Container
+     * @var Container[]
      */
-    private static $container;
+    private static $containers;
 
     /**
      * Definitions to register in the container.
@@ -36,26 +36,16 @@ class StaticContainer
      */
     public static function getContainer()
     {
-        if (self::$container === null) {
+        if (empty(self::$containers)) {
             throw new \Exception("The root container has not been created yet.");
         }
 
-        return self::$container;
+        return end(self::$containers);
     }
 
-    public static function clearContainer()
+    public static function clearContainer() //TODO: remove this method
     {
-        self::$container = null;
-    }
-
-    /**
-     * Only use this in tests.
-     *
-     * @param Container $container
-     */
-    public static function set(Container $container)
-    {
-        self::$container = $container;
+        throw new \Exception("is this still used? (StaticContainer::clearContainer())");
     }
 
     public static function addDefinitions(array $definitions)
@@ -78,5 +68,16 @@ class StaticContainer
     public static function getDefinitions()
     {
         return self::$definitions;
+    }
+
+    public static function push(Container $container)
+    {
+        self::$containers[] = $container;
+        return count(self::$containers) - 1;
+    }
+
+    public static function pop($index)
+    {
+        unset(self::$containers[$index]);
     }
 }

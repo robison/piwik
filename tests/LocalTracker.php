@@ -71,8 +71,9 @@ class Piwik_LocalTracker extends PiwikTracker
         // do tracking and capture output
         ob_start();
 
-        $trackerApplication = new Tracker\TrackerApplication();
-        $trackerApplication->track($requests);
+        Tracker\TrackerApplication::doWithApp(function (Tracker\TrackerApplication $app) use ($requests) {
+            $app->track($requests);
+        });
 
         $output = ob_get_contents();
 

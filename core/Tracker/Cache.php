@@ -135,6 +135,8 @@ class Cache
             return $cacheContent;
         }
 
+        // TODO: plugin problems; instead of loading/unloading in current environment, we should post an event using a EventDispatcher for the right environment.
+        //       or create a plugin manager, load the core plugins and use our own event dispatcher? this would be faster.
         Tracker::initCorePiwikInTrackerMode();
         $cacheContent = array(
             'isBrowserTriggerEnabled' => Rules::isBrowserTriggerEnabled(),

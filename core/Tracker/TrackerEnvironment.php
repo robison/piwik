@@ -35,9 +35,14 @@ class TrackerEnvironment extends Environment
     {
         $GLOBALS['PIWIK_TRACKER_DEBUG'] = $this->isDebugEnabled();
 
-        /** @var Manager $manager */
-        $manager = $this->getContainer()->get('Piwik\Plugin\Manager');
-        $manager->loadTrackerPlugins();
+        try {
+            /** @var Manager $manager */
+            $pluginManager = $this->getContainer()->get('Piwik\Plugin\Manager');
+            $pluginsTracker = $pluginManager->loadTrackerPlugins();
+            Common::printDebug("Loading plugins: { " . implode(", ", $pluginsTracker) . " }");
+        } catch (\Exception $e) {
+            Common::printDebug("ERROR: " . $e->getMessage());
+        }
     }
 
     private function isDebugEnabled()

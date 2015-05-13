@@ -10,6 +10,7 @@ namespace Piwik\Tests\Framework\TestCase;
 
 use Piwik\Application\Environment;
 use Piwik\Application\Kernel\GlobalSettingsProvider;
+use Piwik\Common;
 use Piwik\Tests\Framework\Mock\File;
 
 /**
@@ -41,10 +42,7 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase
 
         GlobalSettingsProvider::unsetSingletonInstance();
 
-        // make sure the global container exists for the next test case that is executed (since logging can be done
-        // before a test sets up an environment)
-        $nextTestEnviornment = new Environment('test', array(), $postBootstrappedEvent = false);
-        $nextTestEnviornment->init();
+        Common::destroy($this->environment);
 
         parent::tearDown();
     }
