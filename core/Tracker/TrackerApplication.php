@@ -31,13 +31,14 @@ class TrackerApplication extends Application
      */
     public function track($params = null)
     {
-        // TODO: get RequestSet from DI too.
+        $container = $this->getEnvironment()->getContainer();
+
         if (empty($params)) {
-            $requestSet = new RequestSet();
+            $requestSet = $container->make('Piwik\Tracker\RequestSet');
         } else if ($params instanceof RequestSet) {
             $requestSet = $params;
         } else if (is_array($params)) {
-            $requestSet = new RequestSet();
+            $requestSet = $container->make('Piwik\Tracker\RequestSet');
             $requestSet->setRequests(array($params));
         } else {
             throw new \InvalidArgumentException("Invalid argument '\$params' supplied to TrackerApplication::track().");
@@ -46,22 +47,16 @@ class TrackerApplication extends Application
         /** @var Tracker $tracker */
         $tracker = $this->getEnvironment()->getContainer()->get('Piwik\Tracker');
 
-        ob_start(); // TODO: this sort of stuff seems out of place here.
-
         try {
             $handler  = Handler\Factory::make(); // TODO: create from DI.
             $response = $tracker->main($handler, $requestSet);
 
             if (!is_null($response)) {
-                echo $response;
+                echo $response; // TODO: shouldn't echo. instead there should be a response class that we can return w/ return code + response text
             }
         } catch (\Exception $e) {
             echo "Error:" . $e->getMessage();
             return 1;
-        }
-
-        if (ob_get_level() > 1) {
-            ob_end_flush();
         }
 
         return 0;

@@ -44,7 +44,13 @@ require_once PIWIK_INCLUDE_PATH . '/core/Tracker/Cache.php';
 require_once PIWIK_INCLUDE_PATH . '/core/Tracker/Request.php';
 require_once PIWIK_INCLUDE_PATH . '/core/Cookie.php';
 
+ob_start();
+
 $trackerApp = new \Piwik\Tracker\TrackerApplication();
 $returnCode = $trackerApp->track();
+
+if (ob_get_level() > 1) {
+    ob_end_flush();
+}
 
 exit($returnCode);
