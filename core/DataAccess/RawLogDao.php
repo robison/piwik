@@ -17,7 +17,7 @@ use Piwik\Piwik;
  */
 class RawLogDao
 {
-    const TEMP_TABLE_NAME = 'tmp_log_actions_to_keep'; // TODO: rename TEMP_TABLE_NAME const name for the method its used in
+    const DELETE_UNUSED_ACTIONS_TEMP_TABLE_NAME = 'tmp_log_actions_to_keep';
 
     /**
      * The max set of rows each table scan select should query at one time. TODO: this was copied from LogDataPurger. should be specified on construction.
@@ -72,6 +72,7 @@ class RawLogDao
     }
 
     /**
+     * TODO: are these methods still used? also check Db::segmented... methods
      * @param string $from
      * @param string $to
      * @return int
@@ -88,12 +89,29 @@ class RawLogDao
     }
 
     /**
-     * TODO
+     * Iterates over logs in a log table in chunks. Parameters to this function are as backend agnostic
+     * as possible w/o dramatically increasing code complexity.
      *
-     * @param $logTable
-     * @param $conditions
-     * @param $iterationStep
-     * @param $callback
+     * @param string $logTable The log table name. Unprefixed, eg, `log_visit`.
+     * @param array[] $conditions An array describing the conditions logs must match in the query. Translates to
+     *                            the WHERE part of a SELECT statement. Each element must contain three elements:
+     *
+     *                            * the column name
+     *                            * the operator (ie, '=', '<>', '<', etc.)
+     *                            * the operand (ie, a value)
+     *
+     *                            The elements are AND-ed together.
+     *
+     *                            Example:
+     *
+     *                            ```
+     *                            array(
+     *                                array('visit_first_action_time', '>=', ...),
+     *                                array('visit_first_action_time', '<', ...)
+     *                            )
+     *                            ```
+     * @param int $iterationStep The number of rows to query at a time.
+     * @param callable $callback The callback that processes each chunk of rows.
      */
     public function forAllLogs($logTable, $fields, $conditions, $iterationStep, $callback)
     {
@@ -112,10 +130,11 @@ class RawLogDao
     }
 
     /**
-     * TODO
+     * Deletes visits with the supplied IDs from log_visit. This method does not cascade, so rows in other tables w/
+     * the same visit ID will still exist.
      *
-     * @param $idVisits
-     * @return int
+     * @param int[] $idVisits
+     * @return int The number of deleted rows.
      */
     public function deleteVisits($idVisits)
     {
@@ -127,10 +146,10 @@ class RawLogDao
     }
 
     /**
-     * TODO
+     * Deletes visit actions for the supplied visit IDs from log_link_visit_action.
      *
-     * @param $visitIds
-     * @return int
+     * @param int[] $visitIds
+     * @return int The number of deleted rows.
      */
     public function deleteVisitActionsForVisits($visitIds)
     {
@@ -142,25 +161,11 @@ class RawLogDao
     }
 
     /**
-     * TODO
+     * Deletes conversions for the supplied visit IDs from log_conversion. This method does not cascade, so
+     * conversion items will not be deleted.
      *
-     * @param $visitActionIds
-     * @return int
-     */
-    public function deleteVisitActions($visitActionIds)
-    {
-        $sql = "DELETE FROM `" . Common::prefixTable('log_link_visit_action') . "` WHERE idlink_va IN "
-             . $this->getInFieldExpressionWithInts($visitActionIds);
-
-        $statement = Db::query($sql);
-        return $statement->rowCount();
-    }
-
-    /**
-     * TODO
-     *
-     * @param $visitIds
-     * @return int
+     * @param int[] $visitIds
+     * @return int The number of deleted rows.
      */
     public function deleteConversions($visitIds)
     {
@@ -172,10 +177,10 @@ class RawLogDao
     }
 
     /**
-     * TODO
+     * Deletes conversion items for the supplied visit IDs from log_conversion_item.
      *
-     * @param $visitIds
-     * @return int
+     * @param int[] $visitIds
+     * @return int The number of deleted rows.
      */
     public function deleteConversionItems($visitIds)
     {
@@ -187,8 +192,12 @@ class RawLogDao
     }
 
     /**
-     * TODO
-     * @throws \Exception
+     * Deletes all unused entries from the log_action table. This method uses a temporary table to store used
+     * actions, and then deletes rows from log_action that are not in this temporary table.
+     *
+     * Table locking is required to avoid concurrency issues.
+     *
+     * @throws \Exception If table locking permission is not granted to the current MySQL user.
      */
     public function deleteUnusedLogActions()
     {
@@ -199,7 +208,7 @@ class RawLogDao
         // get current max ID in log tables w/ idaction references.
         $maxIds = $this->getMaxIdsInLogTables();
 
-        $this->createTempTable();
+        $this->createTempTableForStoringUsedActions();
 
         // do large insert (inserting everything before maxIds) w/o locking tables...
         $this->insertActionsToKeep($maxIds, $deleteOlderThanMax = true);
@@ -281,7 +290,7 @@ class RawLogDao
             }
         }
 
-        $sql .= " LIMIT " . (int)$iterationStep;
+        $sql .= " ORDER BY $idField ASC LIMIT " . (int)$iterationStep;
 
         return array($sql, $bind);
     }
@@ -321,9 +330,9 @@ class RawLogDao
         return $result;
     }
 
-    private function createTempTable()
+    private function createTempTableForStoringUsedActions()
     {
-        $sql = "CREATE TEMPORARY TABLE " . Common::prefixTable(self::TEMP_TABLE_NAME) . " (
+        $sql = "CREATE TEMPORARY TABLE " . Common::prefixTable(self::DELETE_UNUSED_ACTIONS_TEMP_TABLE_NAME) . " (
 					idaction INT(11),
 					PRIMARY KEY (idaction)
 				)";
@@ -332,7 +341,7 @@ class RawLogDao
 
     private function insertActionsToKeep($maxIds, $olderThan = true)
     {
-        $tempTableName = Common::prefixTable(self::TEMP_TABLE_NAME);
+        $tempTableName = Common::prefixTable(self::DELETE_UNUSED_ACTIONS_TEMP_TABLE_NAME);
 
         $idColumns = $this->getTableIdColumns();
         foreach ($this->getIdActionColumns() as $table => $columns) {
@@ -371,17 +380,14 @@ class RawLogDao
     private function lockLogTables()
     {
         Db::lockTables(
-            $readLocks = Common::prefixTables('log_conversion',
-                'log_link_visit_action',
-                'log_visit',
-                'log_conversion_item'),
+            $readLocks = Common::prefixTables('log_conversion', 'log_link_visit_action', 'log_visit', 'log_conversion_item'),
             $writeLocks = Common::prefixTables('log_action')
         );
     }
 
     private function deleteUnusedActions()
     {
-        list($logActionTable, $tempTableName) = Common::prefixTables("log_action", self::TEMP_TABLE_NAME);
+        list($logActionTable, $tempTableName) = Common::prefixTables("log_action", self::DELETE_UNUSED_ACTIONS_TEMP_TABLE_NAME);
 
         $deleteSql = "DELETE LOW_PRIORITY QUICK IGNORE $logActionTable
 						FROM $logActionTable
