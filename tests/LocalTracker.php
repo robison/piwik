@@ -51,13 +51,11 @@ class Piwik_LocalTracker extends PiwikTracker
         $plugins = Config::getInstance()->Plugins['Plugins'];
         $oldTrackerConfig = Config::getInstance()->Tracker;
 
-        \Piwik\Plugin\Manager::getInstance()->unloadPlugins();
-
         // modify config
         \Piwik\SettingsServer::setIsTrackerApiRequest();
         $GLOBALS['PIWIK_TRACKER_LOCAL_TRACKING'] = true;
         Tracker::$initTrackerMode = false;
-        Tracker::setTestEnvironment($testEnvironmentArgs, $method);
+        Tracker::setTestEnvironment($testEnvironmentArgs, $method); // TODO: remove this?
 
         // set language
         $oldLang = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
@@ -73,18 +71,8 @@ class Piwik_LocalTracker extends PiwikTracker
         // do tracking and capture output
         ob_start();
 
-        $localTracker = new Tracker();
-        $request = new Tracker\RequestSet();
-        $request->setRequests($requests);
-
-        \Piwik\Plugin\Manager::getInstance()->loadTrackerPlugins();
-        $handler = Tracker\Handler\Factory::make();
-
-        $response = $localTracker->main($handler, $request);
-
-        if (!is_null($response)) {
-            echo $response;
-        }
+        $trackerApplication = new Tracker\TrackerApplication();
+        $trackerApplication->track($requests);
 
         $output = ob_get_contents();
 

@@ -26,22 +26,24 @@ class TrackerApplication extends Application
     /**
      * TODO
      *
-     * @param array|RequestSet|null $params
+     * @param array|RequestSet|null $requests
      * @return int
      */
-    public function track($params = null)
+    public function track($requests = null)
     {
         $container = $this->getEnvironment()->getContainer();
 
-        if (empty($params)) {
+        /** @var RequestSet $requestSet */
+        $requestSet = null;
+        if (empty($requests)) {
             $requestSet = $container->make('Piwik\Tracker\RequestSet');
-        } else if ($params instanceof RequestSet) {
-            $requestSet = $params;
-        } else if (is_array($params)) {
+        } else if ($requests instanceof RequestSet) {
+            $requestSet = $requests;
+        } else if (is_array($requests)) {
             $requestSet = $container->make('Piwik\Tracker\RequestSet');
-            $requestSet->setRequests(array($params));
+            $requestSet->setRequests($requests);
         } else {
-            throw new \InvalidArgumentException("Invalid argument '\$params' supplied to TrackerApplication::track().");
+            throw new \InvalidArgumentException("Invalid argument '\$requests' supplied to TrackerApplication::track().");
         }
 
         /** @var Tracker $tracker */
