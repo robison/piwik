@@ -5,7 +5,7 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
-namespace Piwik\Tests\System;
+namespace Piwik\Plugins\PrivacyManager\tests\Integration;
 
 use Piwik\Archive;
 use Piwik\Common;
@@ -25,7 +25,7 @@ use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
 use Piwik\Tracker\GoalManager;
 use Piwik\Tests\Framework\Fixture;
 
-class PrivacyManagerTest_RawLogDao extends RawLogDao
+class DataPurgingTest_RawLogDao extends RawLogDao
 {
     public $insertActionsOlderThanCallback;
     public $insertActionsNewerThanCallback;
@@ -46,10 +46,10 @@ class PrivacyManagerTest_RawLogDao extends RawLogDao
 }
 
 /**
- * @group PrivacyManagerTest
+ * @group PrivacyManager
  * @group Plugins
  */
-class PrivacyManagerTest extends IntegrationTestCase
+class DataPurgingTest extends IntegrationTestCase
 {
     // constants used in checking whether numeric tables are populated correctly.
     // 'done' entries exist for every period, even if there's no metric data, so we need the
@@ -79,7 +79,7 @@ class PrivacyManagerTest extends IntegrationTestCase
 
     private $unusedIdAction = null;
 
-    /** @var PrivacyManagerTest_RawLogDao */
+    /** @var DataPurgingTest_RawLogDao */
     private $mockLogDao;
 
     public static function beforeTableDataCached()
@@ -97,7 +97,7 @@ class PrivacyManagerTest extends IntegrationTestCase
 
     public function setUp()
     {
-        $this->mockLogDao = new PrivacyManagerTest_RawLogDao();
+        $this->mockLogDao = new DataPurgingTest_RawLogDao();
 
         parent::setUp();
 
