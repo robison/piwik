@@ -33,7 +33,8 @@ class GetReferrerType extends Base
         $this->constantRowsCount = true;
         $this->hasGoalMetrics = true;
         $this->order = 1;
-        $this->widgetTitle  = 'General_Overview';
+        $this->widgetTitle = 'General_Overview';
+        $this->subCategory = 'General_Overview';
     }
 
     public function getDefaultTypeViewDataTable()
@@ -44,8 +45,9 @@ class GetReferrerType extends Base
     public function getViews()
     {
         return array(
-            $this->createView(),
-            $this->createEvolutionView()->setDefaultColumns(array('nb_visits'))
+            $this->createView(), // makes a default view
+            $this->createEvolutionView($defaultColumns = array('nb_visits')),
+            $this->createSparklinesView($apiMethodToGetSparklines = 'Referrers.getSparklines')
         );
     }
 

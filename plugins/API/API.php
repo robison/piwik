@@ -384,7 +384,7 @@ class API extends \Piwik\Plugin\API
     }
 
     // public function getCategoryMetadata($idSite)
-    public function getReportVisualizationMetadata($idSite)
+    public function getReportViewMetadata($idSite)
     {
         // this logic already allows any plugin to overwrite any core category and any core subcategory
         $categories    = Report\Category::getAllCategories();
@@ -450,22 +450,17 @@ class API extends \Piwik\Plugin\API
                 $cat = array(
                     'category'    => $category->getName(),
                     'subcategory' => $subcategory->getName(),
-                    'views'       => array(),
+                    'reports' => array(),
                 );
 
                 // todo they need to be sorted by order!
                 foreach ($subcategory->getReportViews() as $reportView) {
                      $config = $reportView->getConfig();
-                     $requestConfig = $reportView->getRequestConfig();
-                     $config['id'] = $reportView->getId();
-                     $config['module'] = $reportView->getModule();
-                     $config['action'] = $reportView->getAction();
-                     $config['name'] = $reportView->getName();
-                     $config['report'] = $reportView->getModule() . '.' . $reportView->getAction();
+                     $config['view']   = $reportView->getId();
                      $config['widget_url'] = '?' . http_build_query($reportView->getParameters() + array('id' => $config['id']));
-                     $config['processed_url'] = '?' . http_build_query($requestConfig);
+                     $config['processed_url'] = '?' . http_build_query($reportView->getRequestConfig());
 
-                    $cat['views'][] = $config;
+                    $cat['reports'][] = $config;
                 }
 
                 $entry[] = $cat;

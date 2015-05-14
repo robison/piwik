@@ -493,7 +493,7 @@ class Report
 
     protected function createView()
     {
-        $view = new \Piwik\Plugins\CoreHome\ReportView\DefaultView();
+        $view = new \Piwik\Plugins\CoreHome\ReportView\Visualization();
         $view->setReport($this);
         $view->setName($this->name);
         $view->setCategory($this->category);
@@ -518,13 +518,14 @@ class Report
         return $view;
     }
 
-    protected function createSparklinesView()
+    protected function createSparklinesView($apiMethod)
     {
         $view = new \Piwik\Plugins\CoreHome\ReportView\Sparklines();
         $view->setReport($this);
         $view->setName($this->name);
         $view->setCategory($this->category);
         $view->setSubCategory($this->subCategory);
+        $view->setApiMethod($apiMethod);
 
         if ($this->parameters) {
             $view->setParameters($this->parameters);

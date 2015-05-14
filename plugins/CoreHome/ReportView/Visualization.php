@@ -7,9 +7,10 @@ use Piwik\Plugin\Report;
 use Exception;
 use Piwik\ViewDataTable\Factory as ViewDataTableFactory;
 
-class DefaultView extends \Piwik\Plugin\ReportView
+// todo this is actually ViewDataTable
+class Visualization extends \Piwik\Plugin\ReportView
 {
-    protected $visualization = null;
+    const ID = 'default';
 
     /**
      * Creates a View for and then renders the single report template.
@@ -33,7 +34,7 @@ class DefaultView extends \Piwik\Plugin\ReportView
         $module = $this->report->getModule();
         $action = $this->report->getAction();
 
-        $view = ViewDataTableFactory::build($this->visualization, $apiAction, $module . '.' . $action);
+        $view = ViewDataTableFactory::build($this->viewDataTable, $apiAction, $module . '.' . $action);
 
         return $view;
     }

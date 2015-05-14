@@ -2,18 +2,17 @@
 
 namespace Piwik\Plugins\CoreHome\ReportView;
 
-use Piwik\API\Proxy;
 use Piwik\Plugin\Report;
-use Exception;
 use Piwik\ViewDataTable\Factory as ViewDataTableFactory;
 
-class FixedVisualization extends DefaultView
+// TODO this is actually FixedViewDataTable
+class FixedVisualization extends Visualization
 {
-    protected $visualization;
+    const ID = 'fixed';
 
     public function setVisualization($visualization)
     {
-        $this->visualization = $visualization;
+        $this->viewDataTable = $visualization;
     }
 
     public function getView()
@@ -23,7 +22,7 @@ class FixedVisualization extends DefaultView
         $module = $this->report->getModule();
         $action = $this->report->getAction();
 
-        $view = ViewDataTableFactory::build($this->visualization, $apiAction, $module . '.' . $action, true);
+        $view = ViewDataTableFactory::build($this->viewDataTable, $apiAction, $module . '.' . $action, true);
 
         return $view;
     }

@@ -12,9 +12,23 @@ use Piwik\View;
 
 class Sparklines extends \Piwik\Plugin\ReportView
 {
-    public function __construct($apiMethod)
+    const ID = 'sparklines';
+
+    private $apiMethod;
+
+    public function setApiMethod($apiMethod)
     {
         $this->apiMethod = $apiMethod;
+
+        return $this;
+    }
+
+    public function getParameters()
+    {
+        $parameters = parent::getParameters();
+        $parameters['apiMethod'] = $this->apiMethod;
+
+        return $parameters;
     }
 
     /**

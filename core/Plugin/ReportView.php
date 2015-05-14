@@ -22,6 +22,7 @@ use Piwik\ViewDataTable\Factory as ViewDataTableFactory;
  */
 class ReportView
 {
+    const ID = '';
     /**
      * @var Report
      */
@@ -30,9 +31,14 @@ class ReportView
     protected $category;
     protected $subCategory;
     protected $parameters = array();
+    protected $viewDataTable = null;
 
     public function getId()
     {
+        if (static::ID) {
+            return static::ID;
+        }
+
         $parts = explode('\\', get_class($this));
 
         return end($parts);
@@ -73,11 +79,15 @@ class ReportView
 
     public function getConfig()
     {
-        $config = $this->getView()->config->getProperties();
-        unset($config['clientSideProperties']);
-        unset($config['overridableProperties']);
-
-        return $config;
+        // we should maybe use reportmetadata somehow but we cannot do it here as core doesn't know anything about that.
+        // could add this in API::getReportViewMetadata
+        return array(
+            'name' => $this->getName(),
+            'module' => $this->getModule(),
+            'action' => $this->getAction(),
+            'uniqueId' => 'todo',
+            'visualization' => $this->viewDataTable,
+        );
     }
 
     public function getRequestConfig()
@@ -130,7 +140,12 @@ class ReportView
 
     public function getParameters()
     {
-        return array('module' => $this->getModule(), 'action' => $this->getAction()) + $this->parameters;
+        $defaultParams = array('module' => $this->getModule(), 'action' => $this->getAction());
+        if ($this->viewDataTable) {
+            $defaultParams['viewDataTable'] = $this->viewDataTable;
+        }
+
+        return $defaultParams + $this->parameters;
     }
 
     /**
@@ -149,17 +164,28 @@ class ReportView
 
     public function getView()
     {
-        $apiProxy = Proxy::getInstance();
+        $apiAction = $this->buildApiAction();
 
-        if (!$apiProxy->isExistingApiAction($this->report->getModule(), $this->report->getAction())) {
-            throw new Exception("Invalid action name '$this->action' for '$this->module' plugin.");
-        }
+        $module = $this->report->getModule();
+        $action = $this->report->getAction();
 
-        $apiAction = $apiProxy->buildApiActionName($this->report->getModule(), $this->report->getAction());
-
-        $view = ViewDataTableFactory::build(null, $apiAction, $this->report->getModule() . '.' . $this->report->getAction());
+        $view = ViewDataTableFactory::build($this->viewDataTable, $apiAction, $module . '.' . $action);
 
         return $view;
+    }
+
+    protected function buildApiAction()
+    {
+        $module = $this->report->getModule();
+        $action = $this->report->getAction();
+
+        $apiProxy = Proxy::getInstance();
+
+        if (!$apiProxy->isExistingApiAction($module, $action)) {
+            throw new Exception("Invalid action name '$module' for '$action' plugin.");
+        }
+
+        return $apiProxy->buildApiActionName($module, $action);
     }
 
 

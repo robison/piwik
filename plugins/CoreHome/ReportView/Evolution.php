@@ -4,11 +4,14 @@ namespace Piwik\Plugins\CoreHome\ReportView;
 
 use Piwik\Common;
 use Piwik\Plugin\Report;
+use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph;
 
 class Evolution extends FixedVisualization
 {
-    protected $visualization = \Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution::ID;
-    private $columns;
+    const ID = 'evolution';
+
+    protected $viewDataTable = JqplotGraph\Evolution::ID;
+    private $columns = array();
 
     public function setDefaultColumns($columns)
     {
@@ -16,16 +19,9 @@ class Evolution extends FixedVisualization
         return $this;
     }
 
-    public function getConfig()
-    {
-        return array();
-    }
-
     public function getParameters()
     {
-        if (empty($columns)) {
-            $columns = Common::getRequestVar('columns');
-        }
+        $columns = Common::getRequestVar('columns', $this->columns);
 
         $parameters = parent::getParameters();
         $parameters['columns'] = $columns;
