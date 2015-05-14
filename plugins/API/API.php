@@ -29,6 +29,7 @@ use Piwik\Plugins\CoreAdminHome\CustomLogo;
 use Piwik\Segment\SegmentExpression;
 use Piwik\Translation\Translator;
 use Piwik\Version;
+use Piwik\WidgetsList;
 
 require_once PIWIK_INCLUDE_PATH . '/core/Config.php';
 
@@ -364,10 +365,28 @@ class API extends \Piwik\Plugin\API
         return $processed;
     }
 
-    public function getReportCategories()
+    public function getWidgetMetadata($idSite)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+
+        $list = WidgetsList::get();
+
+        $flat = array();
+
+        foreach ($list as $category => $widgets) {
+            foreach ($widgets as $widget) {
+                $widget['category'] = $category;
+                $flat[] = $widget;
+            }
+        }
+
+        return $flat;
+    }
+
+    // public function getCategoryMetadata($idSite)
+    public function getReportVisualizationMetadata($idSite)
     {
         // this logic already allows any plugin to overwrite any core category and any core subcategory
-
         $categories    = Report\Category::getAllCategories();
         $subcategories = Report\SubCategory::getAllSubCategories();
 
@@ -394,25 +413,28 @@ class API extends \Piwik\Plugin\API
         // move reports into categories/subcategories and create missing ones if needed
         $reports = Report::getAllReports();
         foreach ($reports as $report) {
-            $category = $report->getCategory();
-            $subcategory = $report->getSubCategory();
+            foreach ($report->getViews() as $reportView) {
 
-            if (!$category || !$subcategory) {
-                continue;
+                $category    = $reportView->getCategory();
+                $subcategory = $reportView->getSubCategory();
+
+                if (!$category || !$subcategory) {
+                    continue;
+                }
+
+                if (!isset($all[$category])) {
+                    $all[$category] = new Report\Category();
+                    $all[$category]->setName($category);
+                }
+
+                if (!$all[$category]->hasSubCategory($subcategory)) {
+                    $subcat = new Report\SubCategory();
+                    $subcat->setName($subcategory);
+                    $all[$category]->addSubCategory($subcat);
+                }
+
+                $all[$category]->getSubCategory($subcategory)->addReportView($reportView);
             }
-
-            if (!isset($all[$category])) {
-                $all[$category] = new Report\Category();
-                $all[$category]->setName($category);
-            }
-
-            if (!$all[$category]->hasSubCategory($subcategory)) {
-                $subcat = new Report\SubCategory();
-                $subcat->setName($subcategory);
-                $all[$category]->addSubCategory($subcat);
-            }
-
-            $all[$category]->getSubCategory($subcategory)->addReport($report);
         }
 
         // todo should we maybe iterate over all widgets as well to move optionally widgets to pages?
@@ -421,47 +443,29 @@ class API extends \Piwik\Plugin\API
 
         // format output, todo they need to be sorted by order!
         $entry = array();
-        foreach ($categories as $category) {
+        foreach ($all as $category) {
             // todo they need to be sorted by order!
             foreach ($category->getSubCategories() as $subcategory) {
 
                 $cat = array(
                     'category'    => $category->getName(),
                     'subcategory' => $subcategory->getName(),
-                    'evolution'   => null,
-                    'sparklines'  => $subcategory->getSparklines() ?: null,
-                    'items'       => array(),
+                    'views'       => array(),
                 );
 
-                $evolution = $subcategory->getEvolution();
-
-                if (isset($evolution) && is_array($evolution)) {
-                    $cat['evolution'] = $subcategory->getEvolution();
-                } elseif (isset($evolution) && $evolution instanceof Report) {
-                    $cat['evolution'] = array(
-                        'type' => 'report',
-                        'name' => $evolution->getName(),
-                        'module' => $evolution->getModule(),
-                        'action' => $evolution->getAction(),
-                        'html_url' => '',
-                        'widget_url' => ''
-                    );
-                }
-
                 // todo they need to be sorted by order!
-                foreach ($subcategory->getReports() as $report) {
-                    if (!is_array($report)) {
-                        $report = array(
-                            'type' => 'report',
-                            'name' => $report->getName(),
-                            'module' => $report->getModule(),
-                            'action' => $report->getAction(),
-                            'html_url' => '',
-                            'widget_url' => ''
-                        );
-                    }
+                foreach ($subcategory->getReportViews() as $reportView) {
+                     $config = $reportView->getConfig();
+                     $requestConfig = $reportView->getRequestConfig();
+                     $config['id'] = $reportView->getId();
+                     $config['module'] = $reportView->getModule();
+                     $config['action'] = $reportView->getAction();
+                     $config['name'] = $reportView->getName();
+                     $config['report'] = $reportView->getModule() . '.' . $reportView->getAction();
+                     $config['widget_url'] = '?' . http_build_query($reportView->getParameters() + array('id' => $config['id']));
+                     $config['processed_url'] = '?' . http_build_query($requestConfig);
 
-                    $cat['items'][] = $report;
+                    $cat['views'][] = $config;
                 }
 
                 $entry[] = $cat;

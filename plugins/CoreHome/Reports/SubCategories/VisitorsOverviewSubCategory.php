@@ -15,12 +15,6 @@ class VisitorsOverviewSubCategory extends SubCategory
 {
     protected $category = 'Visitors';
     protected $name = 'Overview';
-    protected $reports = array();
-    protected $sparkline = array('module' => 'VisitsSummary', 'action' => 'sparklines');
 
-    public function __construct()
-    {
-        $this->evolution = Report::factory('VisitsSummary', 'get');
-    }
 
 }

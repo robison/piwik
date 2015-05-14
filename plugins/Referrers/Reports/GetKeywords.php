@@ -10,8 +10,11 @@ namespace Piwik\Plugins\Referrers\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
+use Piwik\Plugins\CoreVisualizations\Visualizations\Controller;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
 use Piwik\Plugins\Referrers\Columns\Keyword;
+use Piwik\Tracker\Visit;
+use Piwik\WidgetsList;
 
 class GetKeywords extends Base
 {
@@ -24,7 +27,18 @@ class GetKeywords extends Base
         $this->actionToLoadSubTables = 'getSearchEnginesFromKeywordId';
         $this->hasGoalMetrics = true;
         $this->order = 3;
-        $this->widgetTitle  = 'Referrers_Keywords';
+        $this->subCategory = 'Referrers_Keywords';
+    }
+
+    public function getViews()
+    {
+        return array(
+            $this->createView(),
+            $this->createEvolutionView(),
+            $this->createFixedVisualizationView(Controller::ID)
+                 ->setParameters(array('controller' => 'Referrers.allReferrers'))
+                 ->setOrder(10)
+        );
     }
 
     public function configureView(ViewDataTable $view)

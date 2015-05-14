@@ -8,6 +8,7 @@
 namespace Piwik\Plugin\Report;
 use Piwik\Plugin\Report;
 use Piwik\Piwik;
+use Piwik\Plugin\ReportView;
 
 /**
  * Base type for metric metadata classes that describe aggregated metrics. These metrics are
@@ -22,19 +23,10 @@ class SubCategory
     protected $name = '';
 
     /**
-     * @var Report[]
+     * @var \Piwik\Plugin\ReportView[]
      */
-    protected $reports = array();
+    protected $reportViews = array();
 
-    /**
-     * @var array|null|Report
-     */
-    protected $evolution = null;
-
-    /**
-     * @var array|null
-     */
-    protected $sparklines = array();
     protected $order = 99;
 
     public function getCategory()
@@ -52,30 +44,19 @@ class SubCategory
         return $this->order;
     }
 
-    // todo should we rename reports into items as it could be in theory (maybe) also a widget etc?
-    public function getReports()
+    public function getReportViews()
     {
-        return $this->reports;
+        return $this->reportViews;
     }
 
-    public function addReport(Report $report)
+    public function addReportView(ReportView $report)
     {
-        $this->reports[] = $report;
-    }
-
-    public function getEvolution()
-    {
-        return $this->evolution;
-    }
-
-    public function getSparklines()
-    {
-        return $this->sparklines;
+        $this->reportViews[] = $report;
     }
 
     public function getName()
     {
-        return Piwik::translate($this->name);
+        return $this->name;
     }
 
     /** @return \Piwik\Plugin\Report\SubCategory[] */

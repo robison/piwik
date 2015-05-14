@@ -362,12 +362,8 @@ class Report
      */
     public function configureWidget(WidgetsList $widget)
     {
-        if ($this->widgetTitle) {
-            $params = array();
-            if (!empty($this->widgetParams) && is_array($this->widgetParams)) {
-                $params = $this->widgetParams;
-            }
-            $widget->add($this->category, $this->widgetTitle, $this->module, $this->action, $params);
+        foreach ($this->getViews() as $view) {
+            $widget->add($view->getCategory(), $view->getName(), $view->getModule(), $view->getAction(), $view->getParameters());
         }
     }
 
@@ -482,6 +478,75 @@ class Report
     {
         $processedMetrics = $this->getProcessedMetrics() ?: array();
         return array_keys(array_merge($this->getMetrics(), $processedMetrics));
+    }
+
+    /**
+     * Returns the array of all report views
+     *
+     * @return ReportView[]
+     * @api
+     */
+    public function getViews()
+    {
+        return array();
+    }
+
+    protected function createView()
+    {
+        $view = new \Piwik\Plugins\CoreHome\ReportView\DefaultView();
+        $view->setReport($this);
+        $view->setName($this->name);
+        $view->setCategory($this->category);
+        $view->setSubCategory($this->subCategory);
+
+        return $view;
+    }
+
+    protected function createEvolutionView($defaultColumns = array())
+    {
+        $view = new \Piwik\Plugins\CoreHome\ReportView\Evolution();
+        $view->setReport($this);
+        $view->setDefaultColumns($defaultColumns);
+        $view->setName($this->name);
+        $view->setCategory($this->category);
+        $view->setSubCategory($this->subCategory);
+
+        if ($this->parameters) {
+            $view->setParameters($this->parameters);
+        }
+
+        return $view;
+    }
+
+    protected function createSparklinesView()
+    {
+        $view = new \Piwik\Plugins\CoreHome\ReportView\Sparklines();
+        $view->setReport($this);
+        $view->setName($this->name);
+        $view->setCategory($this->category);
+        $view->setSubCategory($this->subCategory);
+
+        if ($this->parameters) {
+            $view->setParameters($this->parameters);
+        }
+
+        return $view;
+    }
+
+    protected function createFixedVisualizationView($visualization)
+    {
+        $view = new \Piwik\Plugins\CoreHome\ReportView\FixedVisualization();
+        $view->setVisualization($visualization);
+        $view->setReport($this);
+        $view->setName($this->name);
+        $view->setCategory($this->category);
+        $view->setSubCategory($this->subCategory);
+
+        if ($this->parameters) {
+            $view->setParameters($this->parameters);
+        }
+
+        return $view;
     }
 
     /**

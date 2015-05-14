@@ -75,7 +75,12 @@ class Controller extends \Piwik\Plugin\Controller
 
         $report->checkIsEnabled();
 
-        return $report->render();
+        $id = Common::getRequestVar('id', 'DefaultView', 'string');
+        foreach ($report->getViews() as $view) {
+            if ($view->getId() === $id) {
+                return $view->render();
+            }
+        }
     }
 
     public function renderWidget(PluginWidgets $widget, $method)

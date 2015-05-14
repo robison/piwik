@@ -18,6 +18,7 @@ use Piwik\Piwik;
 class Category
 {
     protected $name = '';
+
     /**
      * @var SubCategory[]
      */
