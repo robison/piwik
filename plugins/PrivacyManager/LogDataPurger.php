@@ -74,7 +74,7 @@ class LogDataPurger
     {
         $this->deleteLogsOlderThan = $deleteLogsOlderThan;
         $this->maxRowsToDeletePerQuery = $maxRowsToDeletePerQuery;
-        $this->logDeleter = $logDeleter ?: StaticContainer::get('Piwik\logDeleter');
+        $this->logDeleter = $logDeleter ?: StaticContainer::get('Piwik\LogDeleter');
         $this->rawLogDao = $rawLogDao ?: StaticContainer::get('Piwik\DataAccess\RawLogDao');
         $this->logIterationStepSize = $logIterationStepSize;
     }

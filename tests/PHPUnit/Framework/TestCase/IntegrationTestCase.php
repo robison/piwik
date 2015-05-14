@@ -8,6 +8,7 @@
 
 namespace Piwik\Tests\Framework\TestCase;
 
+use Piwik\Application\Environment;
 use Piwik\Config;
 use Piwik\Db;
 use Piwik\Tests\Framework\Fixture;
@@ -30,6 +31,8 @@ abstract class IntegrationTestCase extends SystemTestCase
      */
     public static $fixture;
     public static $tableData;
+
+    private $piwikEnvironment;
 
     /**
      * Implementation details:
@@ -78,6 +81,11 @@ abstract class IntegrationTestCase extends SystemTestCase
             self::restoreDbTables(self::$tableData);
         }
 
+        $this->piwikEnvironment = new Environment('test', $this->provideContainerConfig());
+        $this->piwikEnvironment->init();
+
+        Fixture::loadAllPlugins(null, get_class($this));
+
         PiwikCache::getEagerCache()->flushAll();
         PiwikCache::getTransientCache()->flushAll();
     }
@@ -102,6 +110,11 @@ abstract class IntegrationTestCase extends SystemTestCase
     protected static function beforeTableDataCached()
     {
         // empty
+    }
+
+    public function provideContainerConfig()
+    {
+        return array();
     }
 }
 

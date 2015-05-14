@@ -100,6 +100,8 @@ class Fixture extends \PHPUnit_Framework_Assert
 
     public $testEnvironment = null;
 
+    public $extraDefinitions = array();
+
     /**
      * @var Environment
      */
@@ -154,7 +156,9 @@ class Fixture extends \PHPUnit_Framework_Assert
             GlobalSettingsProvider::unsetSingletonInstance();
         }
 
-        $this->piwikEnvironment = new Environment('test');
+        $extraDefinitions = array_merge($this->provideContainerConfig(), $this->extraDefinitions);
+
+        $this->piwikEnvironment = new Environment('test', $extraDefinitions);
         $this->piwikEnvironment->init();
 
         if ($this->createConfig) {

@@ -8,12 +8,10 @@
 namespace Piwik\Tests\System;
 
 use Piwik\Archive;
-use Piwik\ArchiveProcessor\Rules;
 use Piwik\Common;
 use Piwik\Config;
 use Piwik\DataAccess\ArchiveTableCreator;
 use Piwik\DataAccess\RawLogDao;
-use Piwik\DataTable\Manager;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Option;
@@ -23,20 +21,35 @@ use Piwik\Plugins\PrivacyManager\LogDataPurger;
 use Piwik\Plugins\PrivacyManager\PrivacyManager;
 use Piwik\Plugins\PrivacyManager\ReportsPurger;
 use Piwik\Plugins\VisitorInterest\API as APIVisitorInterest;
-use Piwik\Site;
-use Piwik\Tracker\Cache;
+use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
 use Piwik\Tracker\GoalManager;
-use Piwik\Tests\Framework\TestCase\SystemTestCase;
 use Piwik\Tests\Framework\Fixture;
-use Piwik\Translate;
 
-require_once PIWIK_INCLUDE_PATH . '/plugins/PrivacyManager/PrivacyManager.php';
+class PrivacyManagerTest_RawLogDao extends RawLogDao
+{
+    public $insertActionsOlderThanCallback;
+    public $insertActionsNewerThanCallback;
+
+    protected function insertActionsToKeep($maxIds, $olderThan = true, $insertIntoTempIterationStep = 100000)
+    {
+        parent::insertActionsToKeep($maxIds, $olderThan, 2); // we use 2 to force iterations during tests
+
+        // allow code to be executed after data is inserted. for concurrency testing purposes.
+        if ($olderThan && $this->insertActionsOlderThanCallback) {
+            $callback = $this->insertActionsOlderThanCallback;
+            $callback();
+        } else if ($this->insertActionsNewerThanCallback) {
+            $callback = $this->insertActionsNewerThanCallback;
+            $callback();
+        }
+    }
+}
 
 /**
  * @group PrivacyManagerTest
  * @group Plugins
  */
-class PrivacyManagerTest extends SystemTestCase
+class PrivacyManagerTest extends IntegrationTestCase
 {
     // constants used in checking whether numeric tables are populated correctly.
     // 'done' entries exist for every period, even if there's no metric data, so we need the
@@ -58,9 +71,6 @@ class PrivacyManagerTest extends SystemTestCase
     private static $dateTime = '2012-02-28';
     private static $daysAgoStart = 50;
 
-    // maps table names w/ array rows
-    private static $dbData = null;
-
     /**
      * @var PrivacyManager
      */
@@ -69,28 +79,31 @@ class PrivacyManagerTest extends SystemTestCase
 
     private $unusedIdAction = null;
 
-    public static function setUpBeforeClass()
+    /** @var PrivacyManagerTest_RawLogDao */
+    private $mockLogDao;
+
+    public static function beforeTableDataCached()
     {
-        parent::setUpBeforeClass();
+        parent::beforeTableDataCached();
 
         self::_addLogData();
         self::_addReportData();
+    }
 
-        self::$dbData = self::getDbTablesWithData();
+    protected static function configureFixture($fixture)
+    {
+        $fixture->createSuperUser = true;
     }
 
     public function setUp()
     {
+        $this->mockLogDao = new PrivacyManagerTest_RawLogDao();
+
         parent::setUp();
 
-        Translate::loadAllTranslations();
-
-        LogDataPurger::$selectSegmentSize = 2;
         ReportsPurger::$selectSegmentSize = 2;
 
         Db::$lockPrivilegeGranted = null;
-
-        self::restoreDbTables(self::$dbData);
 
         $dateTime = Date::factory(self::$dateTime);
 
@@ -128,11 +141,6 @@ class PrivacyManagerTest extends SystemTestCase
     public function tearDown()
     {
         parent::tearDown();
-        Manager::getInstance()->deleteAll();
-        Option::clearCache();
-        Site::clearCache();
-        Cache::deleteTrackerCache();
-        ArchiveTableCreator::clear();
 
         $tempTableName = Common::prefixTable(RawLogDao::DELETE_UNUSED_ACTIONS_TEMP_TABLE_NAME);
         Db::query("DROP TABLE IF EXISTS " . $tempTableName);
@@ -488,7 +496,7 @@ class PrivacyManagerTest extends SystemTestCase
      */
     public function testPurgeLogDataConcurrency()
     {
-        \Piwik\Piwik::addAction("LogDataPurger.ActionsToKeepInserted.olderThan", array($this, 'addReferenceToUnusedAction'));
+        $this->mockLogDao->insertActionsOlderThanCallback = array($this, 'addReferenceToUnusedAction');
 
         $purger = LogDataPurger::make($this->settings, true);
 
@@ -650,7 +658,7 @@ class PrivacyManagerTest extends SystemTestCase
     {
         $date = Date::factory(self::$dateTime);
 
-        $archive = Archive::build(self::$idSite, 'year', $date);
+        Archive::build(self::$idSite, 'year', $date);
 
         APIVisitorInterest::getInstance()->getNumberOfVisitsPerVisitDuration(self::$idSite, 'year', $date);
 
@@ -890,5 +898,12 @@ class PrivacyManagerTest extends SystemTestCase
         $eventsId = 11 /* days eventAction */ + 2 /* category+name */ + 1 /* event url */ - 3 /* days deleted */
         ;
         return $eventsId;
+    }
+
+    public function provideContainerConfig()
+    {
+        return array(
+            'Piwik\DataAccess\RawLogDao' => $this->mockLogDao
+        );
     }
 }
