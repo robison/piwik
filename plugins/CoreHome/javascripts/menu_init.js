@@ -1,7 +1,8 @@
 $(function () {
-    var isPageHasMenu = $('.Menu--dashboard').size();
+    var isPageHasMenu = $('[piwik-reporting-menu]').size();
     var isPageIsAdmin = $('#content.admin').size();
     if (isPageHasMenu) {
+        return;
         piwikMenu = new menu();
         piwikMenu.init();
         piwikMenu.loadFirstSection();

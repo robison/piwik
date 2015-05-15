@@ -1,0 +1,7 @@
+<div>
+    <div ng-if="pageContentUrl" ng-bind-html="pageContentUrl"></div>
+    <div ng-repeat="report in page.reports">
+        <h2 piwik-enriched-headline>{{ report.name }}</h2>
+        <div ng-include="getReportUrl(report)"></div>
+    </div>
+</div>

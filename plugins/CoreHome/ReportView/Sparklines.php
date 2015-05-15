@@ -43,6 +43,7 @@ class Sparklines extends \Piwik\Plugin\ReportView
      */
     public function render()
     {
+        return '';
         /** @var DataTable $dataTable */
         $view = new View('@CoreHome/sparklines');
         $sparklines = array();

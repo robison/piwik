@@ -28,8 +28,18 @@ class Controller extends ViewDataTable
         $module = $parts[0];
         $action = $parts[1];
 
+        $viewDataTable = '';
+        if (!empty($_GET['viewDataTable'])) {
+            $_GET['viewDataTable'] = '';
+        }
 
-        return FrontController::getInstance()->dispatch($module, $action);
+        $result = FrontController::getInstance()->dispatch($module, $action);
+
+        if (!empty($viewDataTable)) {
+            $_GET['viewDataTable'] = $viewDataTable;
+        }
+
+        return $result;
     }
 
     /**

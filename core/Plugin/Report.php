@@ -362,7 +362,7 @@ class Report
      */
     public function configureWidget(WidgetsList $widget)
     {
-        foreach ($this->getViews() as $view) {
+        foreach ($this->getWidgets() as $view) {
             $widget->add($view->getCategory(), $view->getName(), $view->getModule(), $view->getAction(), $view->getParameters());
         }
     }
@@ -376,13 +376,22 @@ class Report
      */
     public function configureReportingMenu(MenuReporting $menu)
     {
-        if ($this->menuTitle) {
-            $action = $this->getMenuControllerAction();
-            if ($this->isEnabled()) {
-                $menu->addItem($this->category,
-                               $this->menuTitle,
-                               array('module' => $this->module, 'action' => $action),
-                               $this->order);
+        if (!$this->isEnabled()) {
+            return;
+        }
+
+        foreach ($this->getWidgets() as $widget) {
+            // todo this should all be done in CoreHome or API\API as we there can access getReportViewMetadata API
+            // and core should not know anything that CoreHome.renderPage renders a page etc.
+            if ($widget->getCategory() && $widget->getSubCategory()) {
+                $menu->addItem(
+                    $widget->getCategory(),
+                    $widget->getSubCategory(),
+                    array('module' => 'API',
+                          'method' => 'API.getReportViewMetadata',
+                          'category' => $widget->getCategory(),
+                          'subcategory' => $widget->getSubCategory()),
+                    $this->order); // TODO subcategory->getOrder()
             }
         }
     }
@@ -486,12 +495,16 @@ class Report
      * @return ReportView[]
      * @api
      */
-    public function getViews()
+    public function getWidgets()
     {
+        if ($this->menuTitle) {
+            return array($this->createWidget());
+        }
+
         return array();
     }
 
-    protected function createView()
+    protected function createWidget()
     {
         $view = new \Piwik\Plugins\CoreHome\ReportView\Visualization();
         $view->setReport($this);
@@ -502,7 +515,7 @@ class Report
         return $view;
     }
 
-    protected function createEvolutionView($defaultColumns = array())
+    protected function createEvolutionWidget($defaultColumns = array())
     {
         $view = new \Piwik\Plugins\CoreHome\ReportView\Evolution();
         $view->setReport($this);
@@ -518,7 +531,7 @@ class Report
         return $view;
     }
 
-    protected function createSparklinesView($apiMethod)
+    protected function createSparklinesWidget($apiMethod)
     {
         $view = new \Piwik\Plugins\CoreHome\ReportView\Sparklines();
         $view->setReport($this);
@@ -534,7 +547,7 @@ class Report
         return $view;
     }
 
-    protected function createFixedVisualizationView($visualization)
+    protected function createFixedVisualizationWidget($visualization)
     {
         $view = new \Piwik\Plugins\CoreHome\ReportView\FixedVisualization();
         $view->setVisualization($visualization);

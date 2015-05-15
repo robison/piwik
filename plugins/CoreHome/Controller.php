@@ -49,25 +49,6 @@ class Controller extends \Piwik\Plugin\Controller
         return 'redirectToCoreHomeIndex';
     }
 
-    public function renderReportMenu(Report $report)
-    {
-        Piwik::checkUserHasSomeViewAccess();
-        $this->checkSitePermission();
-
-        $report->checkIsEnabled();
-
-        $menuTitle = $report->getMenuTitle();
-
-        if (empty($menuTitle)) {
-            throw new Exception('This report is not supposed to be displayed in the menu, please define a $menuTitle in your report.');
-        }
-
-        $menuTitle = $this->translator->translate($menuTitle);
-        $content   = $this->renderReportWidget($report);
-
-        return View::singleReport($menuTitle, $content);
-    }
-
     public function renderReportWidget(Report $report)
     {
         Piwik::checkUserHasSomeViewAccess();
@@ -75,12 +56,14 @@ class Controller extends \Piwik\Plugin\Controller
 
         $report->checkIsEnabled();
 
-        $id = Common::getRequestVar('id', 'DefaultView', 'string');
-        foreach ($report->getViews() as $view) {
-            if ($view->getId() === $id) {
-                return $view->render();
+        $id = Common::getRequestVar('id', 'default', 'string');
+        foreach ($report->getWidgets() as $widget) {
+            if ($widget->getId() === $id) {
+                return $widget->render();
             }
         }
+
+        throw new Exception('This report does not exist');
     }
 
     public function renderWidget(PluginWidgets $widget, $method)

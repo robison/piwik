@@ -43,7 +43,57 @@ menu.prototype =
             return;
         }
         $('.Menu--dashboard').trigger('piwikSwitchPage', this);
-        broadcast.propagateAjax( $(this).attr('href').substr(1) );
+        var url = $(this).attr('href').substr(1);
+
+       // broadcast.propagateAjax( url );
+
+        var ajaxRequest = new ajaxHelper();
+        ajaxRequest.setUrl('?' + url);
+        ajaxRequest.addParams({
+            format: 'JSON'
+        }, 'get');
+        ajaxRequest.useCallbackInCaseOfError();
+        ajaxRequest.setErrorCallback(function () {
+            debugger;
+        });
+        ajaxRequest.setCallback(
+            function (response) {
+
+                if (!$.isArray(response.reports)) {
+                    return;
+                }
+
+                $('#content').empty();
+
+                $.each(response.reports, function (index, report) {
+                    $('#content').append('<h2 piwik-enriched-headline>' + report.name + '</h2>');
+
+                    var params_vals = report.widget_url.substr(.split("&");
+
+                    // available in global scope
+                    var currentSearchStr = window.location.search;
+                    var currentHashStr = broadcast.getHashFromUrl();
+                    var oldUrl = currentSearchStr + currentHashStr;
+
+                    for (var i = 0; i < params_vals.length; i++) {
+                        // update both the current search query and hash string
+                        currentSearchStr = broadcast.updateParamValue(params_vals[i], currentSearchStr);
+
+                        if (currentHashStr.length != 0) {
+                            currentHashStr = broadcast.updateParamValue(params_vals[i], currentHashStr);
+                        }
+                    }
+
+                    // Now load the new page.
+                    var newUrl = currentSearchStr + currentHashStr;
+
+
+                    $('#content').append('<iframe src="' + newUrl + '"/>');
+                });
+            }
+        );
+        ajaxRequest.send(false);
+
         return false;
     },
 

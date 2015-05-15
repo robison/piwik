@@ -159,7 +159,6 @@ var broadcast = {
         } else {
             // start page
             Piwik_Popover.close();
-
             $('.pageWrap #content:not(.admin)').empty();
         }
     },

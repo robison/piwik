@@ -30,12 +30,12 @@ class GetKeywords extends Base
         $this->subCategory = 'Referrers_Keywords';
     }
 
-    public function getViews()
+    public function getWidgets()
     {
         return array(
-            $this->createView(),
-            $this->createEvolutionView(),
-            $this->createFixedVisualizationView(Controller::ID)
+            $this->createWidget(),
+            $this->createEvolutionWidget(),
+            $this->createFixedVisualizationWidget(Controller::ID)
                  ->setParameters(array('controller' => 'Referrers.allReferrers'))
                  ->setOrder(10)
         );

@@ -125,7 +125,7 @@ class API extends \Piwik\Plugin\API
 
     private function buildDashboard($dashboard, $widgets)
     {
-        return array('name' => $dashboard['name'], 'widgets' => $widgets);
+        return array('name' => $dashboard['name'], 'id' => $dashboard['iddashboard'], 'widgets' => $widgets);
     }
 
     private function widgetExists($widget)

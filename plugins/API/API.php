@@ -384,7 +384,20 @@ class API extends \Piwik\Plugin\API
     }
 
     // public function getCategoryMetadata($idSite)
-    public function getReportViewMetadata($idSite)
+    public function getReportViewMetadata($idSite, $category, $subcategory)
+    {
+        $category = array($category, Piwik::translate($category));
+        $subcategory = array($subcategory, Piwik::translate($subcategory));
+
+        foreach ($this->getReportViewsMetadata($idSite) as $page) {
+            if (in_array($page['category'], $category) && in_array($page['subcategory'],$subcategory)) {
+                return $page;
+            }
+        }
+    }
+
+    // public function getCategoryMetadata($idSite)
+    public function getReportViewsMetadata($idSite)
     {
         // this logic already allows any plugin to overwrite any core category and any core subcategory
         $categories    = Report\Category::getAllCategories();
@@ -413,7 +426,7 @@ class API extends \Piwik\Plugin\API
         // move reports into categories/subcategories and create missing ones if needed
         $reports = Report::getAllReports();
         foreach ($reports as $report) {
-            foreach ($report->getViews() as $reportView) {
+            foreach ($report->getWidgets() as $reportView) {
 
                 $category    = $reportView->getCategory();
                 $subcategory = $reportView->getSubCategory();
@@ -449,7 +462,7 @@ class API extends \Piwik\Plugin\API
 
                 $cat = array(
                     'category'    => $category->getName(),
-                    'subcategory' => $subcategory->getName(),
+                    'subcategory' => Piwik::translate($subcategory->getName()),
                     'reports' => array(),
                 );
 
@@ -457,7 +470,7 @@ class API extends \Piwik\Plugin\API
                 foreach ($subcategory->getReportViews() as $reportView) {
                      $config = $reportView->getConfig();
                      $config['view']   = $reportView->getId();
-                     $config['widget_url'] = '?' . http_build_query($reportView->getParameters() + array('id' => $config['id']));
+                     $config['widget_url'] = '?' . http_build_query($reportView->getParameters());
                      $config['processed_url'] = '?' . http_build_query($reportView->getRequestConfig());
 
                     $cat['reports'][] = $config;

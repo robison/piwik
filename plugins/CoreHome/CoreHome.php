@@ -106,7 +106,7 @@ class CoreHome extends \Piwik\Plugin
         $jsFiles[] = "plugins/CoreHome/javascripts/dataTable_rowactions.js";
         $jsFiles[] = "plugins/CoreHome/javascripts/popover.js";
         $jsFiles[] = "plugins/CoreHome/javascripts/broadcast.js";
-        $jsFiles[] = "plugins/CoreHome/javascripts/menu.js";
+       // $jsFiles[] = "plugins/CoreHome/javascripts/menu.js";
         $jsFiles[] = "plugins/CoreHome/javascripts/menu_init.js";
         $jsFiles[] = "plugins/CoreHome/javascripts/calendar.js";
         $jsFiles[] = "plugins/CoreHome/javascripts/sparkline.js";
@@ -162,6 +162,10 @@ class CoreHome extends \Piwik\Plugin
 
         $jsFiles[] = "plugins/CoreHome/angularjs/ajax-form/ajax-form.controller.js";
         $jsFiles[] = "plugins/CoreHome/angularjs/ajax-form/ajax-form.directive.js";
+
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-page/reportingpage.directive.js";
+        $jsFiles[] = "plugins/CoreHome/angularjs/report/report.directive.js";
+        $jsFiles[] = "plugins/CoreHome/angularjs/reporting-menu/reportingmenu.directive.js";
     }
 
     public function getClientSideTranslationKeys(&$translationKeys)

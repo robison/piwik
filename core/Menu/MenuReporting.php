@@ -124,7 +124,7 @@ class MenuReporting extends MenuAbstract
              * @ignore
              * @deprecated
              */
-            Piwik::postEvent('Menu.Reporting.addItems', array());
+            // Piwik::postEvent('Menu.Reporting.addItems', array());
 
             foreach (Report::getAllReports() as $report) {
                 if ($report->isEnabled()) {
@@ -133,7 +133,7 @@ class MenuReporting extends MenuAbstract
             }
 
             foreach ($this->getAllMenus() as $menu) {
-                $menu->configureReportingMenu($this);
+                // $menu->configureReportingMenu($this);
             }
 
         }

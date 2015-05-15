@@ -140,7 +140,7 @@ class ReportView
 
     public function getParameters()
     {
-        $defaultParams = array('module' => $this->getModule(), 'action' => $this->getAction());
+        $defaultParams = array('module' => $this->getModule(), 'action' => $this->getAction(), 'id' => $this->getId());
         if ($this->viewDataTable) {
             $defaultParams['viewDataTable'] = $this->viewDataTable;
         }

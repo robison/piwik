@@ -42,12 +42,12 @@ class GetReferrerType extends Base
         return HtmlTable\AllColumns::ID;
     }
 
-    public function getViews()
+    public function getWidgets()
     {
         return array(
-            $this->createView(), // makes a default view
-            $this->createEvolutionView($defaultColumns = array('nb_visits')),
-            $this->createSparklinesView($apiMethodToGetSparklines = 'Referrers.getSparklines')
+            $this->createWidget(), // makes a default view
+            $this->createEvolutionWidget($defaultColumns = array('nb_visits')),
+            $this->createSparklinesWidget($apiMethodToGetSparklines = 'Referrers.getSparklines')
         );
     }
 
