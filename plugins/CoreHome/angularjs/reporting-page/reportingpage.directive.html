@@ -1,7 +1,37 @@
 <div>
-    <div ng-if="pageContentUrl" ng-bind-html="pageContentUrl"></div>
-    <div ng-repeat="report in page.reports">
+    <div ng-if="pageContentUrl" ng-include="pageContentUrl"></div>
+
+    <div ng-if="evolutionReport">
+        <h2 piwik-enriched-headline>{{ evolutionReport.name }}</h2>
+        <div ng-include="evolutionReport.html_url"></div>
+    </div>
+
+    <div ng-if="sparklineReport">
+        <h2 piwik-enriched-headline>{{ sparklineReport.name }}</h2>
+        <div ng-include="sparklineReport.html_url"></div>
+    </div>
+
+    <div ng-if="(reports | length) == 1" ng-repeat="report in reports">
         <h2 piwik-enriched-headline>{{ report.name }}</h2>
-        <div ng-include="getReportUrl(report)"></div>
+        <div ng-include="report.html_url"></div>
+    </div>
+
+    <div ng-if="(reports | length) > 1" >
+        <div class="row">
+            <div class="col-md-6">
+                <div ng-repeat="report in reports" ng-if="$even">
+                    <h2 piwik-enriched-headline>{{ report.name }}</h2>
+                    <div ng-include="report.html_url"></div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div ng-repeat="report in reports" ng-if="$odd">
+                    <h2 piwik-enriched-headline>{{ report.name }}</h2>
+                    <div ng-include="report.html_url"></div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>

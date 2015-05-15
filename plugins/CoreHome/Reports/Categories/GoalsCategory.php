@@ -12,6 +12,6 @@ use Piwik\Plugin\Report\Category;
 
 class GoalsCategory extends Category
 {
-    protected $name = 'Goals';
+    protected $name = 'Goals_Goals';
     protected $order = 8;
 }

@@ -12,6 +12,6 @@ use Piwik\Plugin\Report\Category;
 
 class VisitorsCategory extends Category
 {
-    protected $name = 'Visitors';
+    protected $name = 'General_Visitors';
     protected $order = 5;
 }

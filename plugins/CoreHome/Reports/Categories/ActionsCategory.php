@@ -12,6 +12,6 @@ use Piwik\Plugin\Report\Category;
 
 class ActionsCategory extends Category
 {
-    protected $name = 'Actions';
+    protected $name = 'General_Actions';
     protected $order = 6;
 }

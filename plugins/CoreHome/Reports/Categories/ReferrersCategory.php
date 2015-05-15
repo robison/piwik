@@ -12,6 +12,6 @@ use Piwik\Plugin\Report\Category;
 
 class ReferrersCategory extends Category
 {
-    protected $name = 'Referrers';
+    protected $name = 'Referrers_Referrers';
     protected $order = 7;
 }

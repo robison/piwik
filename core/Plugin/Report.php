@@ -339,19 +339,10 @@ class Report
      */
     public function render()
     {
-        $apiProxy = Proxy::getInstance();
+        $reportView = new ReportView();
+        $reportView->setReport($this);
 
-        if (!$apiProxy->isExistingApiAction($this->module, $this->action)) {
-            throw new Exception("Invalid action name '$this->action' for '$this->module' plugin.");
-        }
-
-        $apiAction = $apiProxy->buildApiActionName($this->module, $this->action);
-
-        $view = ViewDataTableFactory::build(null, $apiAction, $this->module . '.' . $this->action);
-
-        $rendered  = $view->render();
-
-        return $rendered;
+        return $reportView->render();
     }
 
     /**

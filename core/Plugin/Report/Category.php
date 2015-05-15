@@ -33,7 +33,7 @@ class Category
 
     public function getName()
     {
-        return Piwik::translate($this->name);
+        return $this->name;
     }
 
     public function setName($name)
@@ -59,6 +59,11 @@ class Category
     public function getSubCategories()
     {
         return $this->subCategories;
+    }
+
+    public function hasSubCategories()
+    {
+        return !empty($this->subCategories);
     }
 
     /** @return \Piwik\Plugin\Report\Category[] */

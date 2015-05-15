@@ -386,12 +386,17 @@ class API extends \Piwik\Plugin\API
     // public function getCategoryMetadata($idSite)
     public function getReportViewMetadata($idSite, $category, $subcategory)
     {
-        $category = array($category, Piwik::translate($category));
-        $subcategory = array($subcategory, Piwik::translate($subcategory));
+        $category = urldecode($category);
+        $subcategory = urldecode($subcategory);
 
         foreach ($this->getReportViewsMetadata($idSite) as $page) {
-            if (in_array($page['category'], $category) && in_array($page['subcategory'],$subcategory)) {
-                return $page;
+            if ($page['category'] === $category) {
+                foreach ($page['subcategories'] as $subcat) {
+                    if ($subcat['name'] === $subcategory) {
+                        return $subcat;
+                    }
+                }
+                return;
             }
         }
     }
@@ -457,26 +462,36 @@ class API extends \Piwik\Plugin\API
         // format output, todo they need to be sorted by order!
         $entry = array();
         foreach ($all as $category) {
-            // todo they need to be sorted by order!
-            foreach ($category->getSubCategories() as $subcategory) {
 
+            $ca = array(
+                'category' => Piwik::translate($category->getName()),
+                'order' => $category->getOrder(),
+                'subcategories' => array()
+            );
+
+            foreach ($category->getSubCategories() as $subcategory) {
                 $cat = array(
-                    'category'    => $category->getName(),
-                    'subcategory' => Piwik::translate($subcategory->getName()),
+                    'name' => Piwik::translate($subcategory->getName()),
+                    'order'   => $subcategory->getOrder(),
                     'reports' => array(),
                 );
 
-                // todo they need to be sorted by order!
                 foreach ($subcategory->getReportViews() as $reportView) {
-                     $config = $reportView->getConfig();
-                     $config['view']   = $reportView->getId();
-                     $config['widget_url'] = '?' . http_build_query($reportView->getParameters());
-                     $config['processed_url'] = '?' . http_build_query($reportView->getRequestConfig());
+                    $config = $reportView->getConfig();
+                    $config['view']   = $reportView->getId();
+                    $config['widget_url'] = '?' . http_build_query($reportView->getParameters());
+                    $config['processed_url'] = '?' . http_build_query($reportView->getRequestConfig());
 
                     $cat['reports'][] = $config;
                 }
 
-                $entry[] = $cat;
+                if (!empty($cat['reports'])) {
+                    $ca['subcategories'][] = $cat;
+                }
+            }
+
+            if (!empty($ca['subcategories'])) {
+                $entry[] = $ca;
             }
         }
 

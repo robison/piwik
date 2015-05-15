@@ -28,62 +28,59 @@
                     scope.loadSubcategory = function (category) {
 
                         var idSite = broadcast.getValueFromHash('idSite');
+                        if (!idSite) {
+                            idSite = broadcast.getValueFromUrl('idSite');
+                        }
                         var period = broadcast.getValueFromHash('period');
-                        var date = broadcast.getValueFromHash('date');
-
-
-                        var currentHashStr = broadcast.getHashFromUrl();
-
-                        if (!currentHashStr.length <= 2) {
-                            currentHashStr = window.location.search;
+                        if (!period) {
+                            period = broadcast.getValueFromUrl('period');
+                        }
+                        var date   = broadcast.getValueFromHash('date');
+                        if (!date) {
+                            date = broadcast.getValueFromUrl('date');
                         }
 
-                        if (currentHashStr.length != 0 && category.category && category.subcategory) {
-                            currentHashStr = broadcast.updateParamValue('category=' + category.category, currentHashStr);
-                            currentHashStr = broadcast.updateParamValue('subcategory=' + category.subcategory, currentHashStr);
-                        } else {
-                            var params_vals = category.html_url.split("&");
+                        var url = 'idSite=' + idSite + '&period=' + period + '&date=' + date + '&';
 
-                            // available in global scope
-                            var currentHashStr = broadcast.getHashFromUrl();
+                        var rand = parseInt(Math.random()* 100000, 10);
+                        url += 'random=' + rand+ '&';
+                        url += category.html_url;
 
-                            for (var i = 0; i < params_vals.length; i++) {
-
-                                if (currentHashStr.length != 0) {
-                                    currentHashStr = broadcast.updateParamValue(params_vals[i], currentHashStr);
-                                }
-                            }
-                        }
-
-                        $location.path(currentHashStr);
+                        $location.path(url);
                     };
 
                     piwikApi.bulkFetch([
-                        {method: 'Dashboard.getDashboards'},
-                        {method: 'API.getReportViewsMetadata'}
+                        {method: 'API.getReportViewsMetadata'},
+                        {method: 'Dashboard.getDashboards'}
                     ]).then(function (response) {
-                        var menu = {};
-                        angular.forEach(response[0], function (dashboard, key) {
-                            var category    = 'Dashboards'; // TODO use translation
+                        var menu = [];
+
+                        angular.forEach(response[0], function (page, key) {
+                            var category = page.category;
+
+                            angular.forEach(page.subcategories, function (subcategory) {
+                                var name = subcategory.name;
+                                subcategory.html_url = 'module=Reporting&action=renderPage&category=' + category + '&subcategory='+ name;
+                            });
+
+                            menu.push(page);
+                        });
+
+                        var dashboards = {
+                            category: 'Dashboards',  // TODO use translation
+                            order: 1,
+                            subcategories: []
+                        }
+
+                        angular.forEach(response[1], function (dashboard, key) {
                             var subcategory = dashboard.name;
+                            dashboard.order = key;
                             dashboard.html_url = 'module=Dashboard&action=embeddedIndex&idDashboard=' + dashboard.id;
 
-                            if (!menu[category]) {
-                                menu[category] = [];
-                            }
-
-                            menu[category].push(dashboard);
+                            dashboards.subcategories.push(dashboard);
                         });
-                        angular.forEach(response[1], function (page, key) {
-                            var category    = page.category;
-                            var subcategory = page.subcategory;
+                        menu.push(dashboards);
 
-                            if (!menu[category]) {
-                                menu[category] = [];
-                            }
-
-                            menu[category].push(page);
-                        });
                         scope.menu = menu;
                     });
 

@@ -17,6 +17,7 @@ use Piwik\Menu\MenuReporting;
 use Piwik\Notification\Manager as NotificationManager;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
+use Piwik\Plugin\ReportView;
 use Piwik\Plugins\CoreHome\DataTableRowAction\MultiRowEvolution;
 use Piwik\Plugins\CoreHome\DataTableRowAction\RowEvolution;
 use Piwik\Plugins\CorePluginsAdmin\MarketplaceApiClient;
@@ -63,7 +64,7 @@ class Controller extends \Piwik\Plugin\Controller
             }
         }
 
-        throw new Exception('This report does not exist');
+        return $report->render();
     }
 
     public function renderWidget(PluginWidgets $widget, $method)
