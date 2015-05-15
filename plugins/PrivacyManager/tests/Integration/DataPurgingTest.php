@@ -14,6 +14,7 @@ use Piwik\DataAccess\ArchiveTableCreator;
 use Piwik\DataAccess\RawLogDao;
 use Piwik\Date;
 use Piwik\Db;
+use Piwik\DbHelper;
 use Piwik\Option;
 use Piwik\Plugins\Goals\API as APIGoals;
 use Piwik\Plugins\Goals\Archiver;
@@ -238,6 +239,21 @@ class DataPurgingTest extends IntegrationTestCase
         $this->assertEquals(self::FEB_METRIC_ARCHIVE_COUNT + 1, $this->_getTableCount($archiveTables['blob'][1])); // February
     }
 
+    public function test_LogDataPurging_WorksWhenVisitsInPastTracked()
+    {
+        DbHelper::deleteArchiveTables();
+
+        self::trackVisitInPast();
+        self::_addReportData();
+
+        $this->_setTimeToRun();
+        $this->assertTrue( $this->instance->deleteLogData() );
+
+        $this->checkLogDataPurged();
+
+        // NOTE: it is not expected that the data purging estimate will work when visits in the past are tracked
+    }
+
     /**
      * Make sure nothing happens when deleting logs & reports are both disabled.
      */
@@ -270,10 +286,8 @@ class DataPurgingTest extends IntegrationTestCase
      */
     public function testPurgeDataDeleteLogsNoData()
     {
-        \Piwik\DbHelper::truncateAllTables();
-        foreach (ArchiveTableCreator::getTablesArchivesInstalled() as $table) {
-            Db::exec("DROP TABLE $table");
-        }
+        DbHelper::truncateAllTables();
+        DbHelper::deleteArchiveTables();
 
         // get purge data prediction
         $prediction = PrivacyManager::getPurgeEstimate();
@@ -651,7 +665,22 @@ class DataPurgingTest extends IntegrationTestCase
             $t->doTrackEcommerceOrder($orderId = '937nsjusu ' . $dateTime, $grandTotal = 1111.11, $subTotal = 1000,
                 $tax = 111, $shipping = 0.11, $discount = 666);
         }
+
         Fixture::checkBulkTrackingResponse($t->doBulkTrack());
+    }
+
+    protected static function trackVisitInPast()
+    {
+        $start = Date::factory(self::$dateTime);
+
+        // add a visit in the past so the idvisit will be greater than the others, but the time will be older
+        // this tests issue #7180
+        $t = Fixture::getTracker(self::$idSite, $start, $defaultInit = true);
+        // we subtract 5 so it will be on the same day as another visit. this way, we won't create another day archive
+        // and change the counts in asserts
+        $t->setForceVisitDateTime($start->subDay(self::$daysAgoStart - 5));
+        $t->setUrl("http://whatever.com/days_in_past");
+        $t->doTrackPageView('visit in past');
     }
 
     protected static function _addReportData()
@@ -753,7 +782,6 @@ class DataPurgingTest extends IntegrationTestCase
         $this->assertEquals(41, $this->_getTableCount('log_action'));
 
         $archiveTables = self::_getArchiveTableNames();
-        //var_export(Db::fetchAll("SELECT * FROM " . Common::prefixTable($archiveTables['numeric'][0])));
 
         $janMetricCount = $this->_getExpectedNumericArchiveCountJan();
         $this->assertEquals($janMetricCount, $this->_getTableCount($archiveTables['numeric'][0])); // January
