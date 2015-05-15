@@ -18,9 +18,11 @@ use Piwik\Tracker;
  */
 class TrackerApplication extends Application
 {
-    public function __construct($definitions = array())
+    public function __construct(TrackerEnvironment $environment = null, $definitions = array())
     {
-        parent::__construct(new TrackerEnvironment($definitions));
+        $environment = $environment ?: new TrackerEnvironment($definitions);
+
+        parent::__construct($environment);
     }
 
     /**

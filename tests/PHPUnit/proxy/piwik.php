@@ -15,23 +15,39 @@ use Piwik\Tracker;
 
 require realpath(dirname(__FILE__)) . "/includes.php";
 
+class TestTrackerTestEnvironment extends Tracker\TrackerEnvironment
+{
+    protected function doPostContainerCreatedSetup()
+    {
+        Tracker::setTestEnvironment();
+        Manager::getInstance()->deleteAll();
+        Option::clearCache();
+        Site::clearCache();
+
+        parent::doPostContainerCreatedSetup();
+    }
+}
+
+class TestTrackerApplication extends Tracker\TrackerApplication
+{
+    public function __construct($definitions = array())
+    {
+        parent::__construct(new TestTrackerTestEnvironment(), $definitions);
+    }
+}
+
 // Wrapping the request inside ob_start() calls to ensure that the Test
 // calling us waits for the full request to process before unblocking
 ob_start();
 
+$returnCode = 0;
 try {
     Piwik_TestingEnvironment::addHooks();
 
     GeoIp::$geoIPDatabaseDir = 'tests/lib/geoip-files';
 
-    \Piwik\Piwik::addAction('Environment.bootstrapped', function () {
-        Tracker::setTestEnvironment();
-        Manager::getInstance()->deleteAll();
-        Option::clearCache();
-        Site::clearCache();
-    });
-
-    include PIWIK_INCLUDE_PATH . '/piwik.php';
+    $trackerApp = new TestTrackerApplication();
+    $returnCode = $trackerApp->track();
 } catch (Exception $ex) {
     echo "Unexpected error during tracking: " . $ex->getMessage() . "\n" . $ex->getTraceAsString() . "\n";
 }
@@ -40,3 +56,4 @@ if (ob_get_level() > 1) {
     ob_end_flush();
 }
 
+exit($returnCode);

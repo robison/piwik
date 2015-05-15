@@ -170,7 +170,7 @@ class OneVisitorTwoVisits extends Fixture
         $t->setUrl('http://example.org/store/purchase.htm');
         $t->setUrlReferrer('http://search.yahoo.com/search?p=purchase');
         // Temporary, until we implement 1st party cookies in PiwikTracker
-        $t->DEBUG_APPEND_URL = '&_idvc=2';
+        $t->DEBUG_APPEND_URL = '&_idvc=2&debug=1';
 
         // Goal Tracking URL matching, testing custom referrer including keyword
 		$t->setGenerationTime(134);
