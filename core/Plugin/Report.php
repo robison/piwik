@@ -542,7 +542,7 @@ class Report
     {
         $view = $this->createWidget();
         $view->forceViewDataTable(Evolution::ID);
-        $view->setParameters(array_merge($view->getParameters(), array('columns' => $defaultColumns)));
+        $view->addParameters(array('columns' => $defaultColumns));
 
         return $view;
     }

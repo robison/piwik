@@ -124,6 +124,11 @@ class ReportViewConfig
         return $this;
     }
 
+    public function addParameters($parameters)
+    {
+        $this->parameters = array_merge($parameters, $this->parameters);
+    }
+
     public function getParameters()
     {
         $defaultParams = array(

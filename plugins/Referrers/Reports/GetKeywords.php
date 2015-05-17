@@ -14,7 +14,6 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\Controller;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
 use Piwik\Plugins\Referrers\Columns\Keyword;
 use Piwik\Tracker\Visit;
-use Piwik\WidgetsList;
 
 class GetKeywords extends Base
 {
@@ -37,7 +36,7 @@ class GetKeywords extends Base
             $this->createEvolutionWidget(),
             $this->createCustomWidget('Referrers', 'allReferrers')
                  ->setSubCategory('All Referrers')
-                 ->setOrder(10)
+                 ->setOrder(10),
         );
     }
 

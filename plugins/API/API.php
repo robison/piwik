@@ -455,12 +455,10 @@ class API extends \Piwik\Plugin\API
             }
         }
 
-        // Piwik::postEvent('API.getReportViews', array(&$all));
-        // this will allow to add goal manager
+        // this will allow to add goal manager etc
+        Piwik::postEvent('API.getReportViews', array(&$all));
 
         // todo should we maybe iterate over all widgets as well to move optionally widgets to pages?
-
-        // POST EVENT to be able to change it and to handle report dimensions?!?
 
         // format output, todo they need to be sorted by order!
         $entry = array();
@@ -485,17 +483,16 @@ class API extends \Piwik\Plugin\API
                         'name' => $reportView->getName(),
                         'module' => $reportView->getModule(),
                         'action' => $reportView->getAction(),
-                        'uniqueId' => 'todo',
+                        'parameters' => $reportView->getParameters(),
                         'viewDataTable' => $reportView->getDefaultView(),
                         'widget_url' => '?' . http_build_query($reportView->getParameters()),
                         'processed_url' => '?' . http_build_query(array(
-                                'module' => 'API',
-                                'method' => 'API.getProcessedReport',
-                                'apiModule' => $reportView->getModule(),
-                                'apiAction' => $reportView->getAction()
-                            ))
+                            'module' => 'API',
+                            'method' => 'API.getProcessedReport',
+                            'apiModule' => $reportView->getModule(),
+                            'apiAction' => $reportView->getAction()
+                        ))
                     );
-                    $config = array_merge($config, $reportView->getParameters());
 
                     $cat['reports'][] = $config;
                 }

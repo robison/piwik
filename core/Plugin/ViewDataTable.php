@@ -273,7 +273,7 @@ abstract class ViewDataTable implements ViewInterface
         $this->overrideViewPropertiesWithQueryParams();
     }
 
-    protected function assignRelatedReportsTitle()
+    private function assignRelatedReportsTitle()
     {
         if (!empty($this->config->related_reports_title)) {
             // title already assigned by a plugin
