@@ -455,6 +455,9 @@ class API extends \Piwik\Plugin\API
             }
         }
 
+        // Piwik::postEvent('API.getReportViews', array(&$all));
+        // this will allow to add goal manager
+
         // todo should we maybe iterate over all widgets as well to move optionally widgets to pages?
 
         // POST EVENT to be able to change it and to handle report dimensions?!?
@@ -477,10 +480,22 @@ class API extends \Piwik\Plugin\API
                 );
 
                 foreach ($subcategory->getReportViews() as $reportView) {
-                    $config = $reportView->getConfig();
-                    $config['view']   = $reportView->getId();
-                    $config['widget_url'] = '?' . http_build_query($reportView->getParameters());
-                    $config['processed_url'] = '?' . http_build_query($reportView->getRequestConfig());
+                    /** @var \Piwik\Plugin\ReportViewConfig $reportView */
+                    $config = array(
+                        'name' => $reportView->getName(),
+                        'module' => $reportView->getModule(),
+                        'action' => $reportView->getAction(),
+                        'uniqueId' => 'todo',
+                        'viewDataTable' => $reportView->getDefaultView(),
+                        'widget_url' => '?' . http_build_query($reportView->getParameters()),
+                        'processed_url' => '?' . http_build_query(array(
+                                'module' => 'API',
+                                'method' => 'API.getProcessedReport',
+                                'apiModule' => $reportView->getModule(),
+                                'apiAction' => $reportView->getAction()
+                            ))
+                    );
+                    $config = array_merge($config, $reportView->getParameters());
 
                     $cat['reports'][] = $config;
                 }

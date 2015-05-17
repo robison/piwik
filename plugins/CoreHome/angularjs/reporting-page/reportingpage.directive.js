@@ -72,9 +72,9 @@
                             angular.forEach(response.reports, function (report) {
                                 report.html_url = getReportUrl(report);
 
-                                if (report.view === 'evolution') {
+                                if (report.viewDataTable === 'graphEvolution') {
                                     scope.evolutionReport = report;
-                                } else if (report.view === 'sparklines') {
+                                } else if (report.viewDataTable === 'sparklines') {
                                     scope.sparklineReport = report;
                                 } else {
                                     reports.push(report);

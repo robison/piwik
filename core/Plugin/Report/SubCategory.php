@@ -8,7 +8,7 @@
 namespace Piwik\Plugin\Report;
 use Piwik\Plugin\Report;
 use Piwik\Piwik;
-use Piwik\Plugin\ReportView;
+use Piwik\Plugin\ReportViewConfig;
 
 /**
  * Base type for metric metadata classes that describe aggregated metrics. These metrics are
@@ -23,7 +23,7 @@ class SubCategory
     protected $name = '';
 
     /**
-     * @var \Piwik\Plugin\ReportView[]
+     * @var \Piwik\Plugin\ReportViewConfig[]
      */
     protected $reportViews = array();
 
@@ -49,7 +49,7 @@ class SubCategory
         return $this->reportViews;
     }
 
-    public function addReportView(ReportView $report)
+    public function addReportView(ReportViewConfig $report)
     {
         $this->reportViews[] = $report;
     }

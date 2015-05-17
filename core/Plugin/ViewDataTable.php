@@ -411,11 +411,8 @@ abstract class ViewDataTable implements ViewInterface
      */
     public function render()
     {
-        $view = $this->buildView();
-        return $view->render();
+        return '';
     }
-
-    abstract protected function buildView();
 
     protected function getDefaultDataTableCssClass()
     {

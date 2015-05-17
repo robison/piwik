@@ -35,8 +35,8 @@ class GetKeywords extends Base
         return array(
             $this->createWidget(),
             $this->createEvolutionWidget(),
-            $this->createFixedVisualizationWidget(Controller::ID)
-                 ->setParameters(array('controller' => 'Referrers.allReferrers'))
+            $this->createCustomWidget('Referrers', 'allReferrers')
+                 ->setSubCategory('All Referrers')
                  ->setOrder(10)
         );
     }

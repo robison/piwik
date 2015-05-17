@@ -13,6 +13,7 @@ use Piwik\API\Request;
 use Piwik\Cache;
 use Piwik\CacheId;
 use Piwik\Columns\Dimension;
+use Piwik\Common;
 use Piwik\DataTable;
 use Piwik\DataTable\Filter\Sort;
 use Piwik\Menu\MenuReporting;
@@ -23,6 +24,7 @@ use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugin\Report\Category;
 use Piwik\Plugin\Report\SubCategory;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
+use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
 use Piwik\WidgetsList;
 use Piwik\ViewDataTable\Factory as ViewDataTableFactory;
 use Exception;
@@ -339,10 +341,23 @@ class Report
      */
     public function render()
     {
-        $reportView = new ReportView();
-        $reportView->setReport($this);
+        $viewDataTable = Common::getRequestVar('viewDataTable', false, 'string');
+        $fixed = Common::getRequestVar('forceView', 0, 'int');
 
-        return $reportView->render();
+        $module = $this->getModule();
+        $action = $this->getAction();
+
+        $apiProxy = Proxy::getInstance();
+
+        if (!$apiProxy->isExistingApiAction($module, $action)) {
+            throw new Exception("Invalid action name '$module' for '$action' plugin.");
+        }
+
+        $apiAction = $apiProxy->buildApiActionName($module, $action);
+
+        $view = ViewDataTableFactory::build($viewDataTable, $apiAction, $module . '.' . $action, $fixed);
+
+        return $view->render();
     }
 
     /**
@@ -483,7 +498,7 @@ class Report
     /**
      * Returns the array of all report views
      *
-     * @return ReportView[]
+     * @return ReportViewConfig[]
      * @api
      */
     public function getWidgets()
@@ -495,61 +510,47 @@ class Report
         return array();
     }
 
+    // actually, it should be createViews and it could just return any ViewInterface?!?
+    // we shouldn't name it reportView, maybe rather ReportViewConfig something with Routing? Or Widget?
     protected function createWidget()
     {
-        $view = new \Piwik\Plugins\CoreHome\ReportView\Visualization();
-        $view->setReport($this);
+        $view = new ReportViewConfig();
         $view->setName($this->name);
         $view->setCategory($this->category);
         $view->setSubCategory($this->subCategory);
+        $view->setModule($this->module);
+        $view->setAction($this->action);
+
+        if ($this->parameters) {
+            $view->setParameters($this->parameters);
+        }
 
         return $view;
     }
 
+    protected function createCustomWidget($module, $action)
+    {
+        $view = $this->createWidget();
+        $view->setModule($module);
+        $view->setAction($action);
+
+        return $view;
+    }
+
+    // this cannot be here as it has knowledge of Evolution grap which is in a plugin!
     protected function createEvolutionWidget($defaultColumns = array())
     {
-        $view = new \Piwik\Plugins\CoreHome\ReportView\Evolution();
-        $view->setReport($this);
-        $view->setDefaultColumns($defaultColumns);
-        $view->setName($this->name);
-        $view->setCategory($this->category);
-        $view->setSubCategory($this->subCategory);
-
-        if ($this->parameters) {
-            $view->setParameters($this->parameters);
-        }
-
-        return $view;
-    }
-
-    protected function createSparklinesWidget($apiMethod)
-    {
-        $view = new \Piwik\Plugins\CoreHome\ReportView\Sparklines();
-        $view->setReport($this);
-        $view->setName($this->name);
-        $view->setCategory($this->category);
-        $view->setSubCategory($this->subCategory);
-        $view->setApiMethod($apiMethod);
-
-        if ($this->parameters) {
-            $view->setParameters($this->parameters);
-        }
+        $view = $this->createWidget();
+        $view->forceViewDataTable(Evolution::ID);
+        $view->setParameters(array_merge($view->getParameters(), array('columns' => $defaultColumns)));
 
         return $view;
     }
 
     protected function createFixedVisualizationWidget($visualization)
     {
-        $view = new \Piwik\Plugins\CoreHome\ReportView\FixedVisualization();
-        $view->setVisualization($visualization);
-        $view->setReport($this);
-        $view->setName($this->name);
-        $view->setCategory($this->category);
-        $view->setSubCategory($this->subCategory);
-
-        if ($this->parameters) {
-            $view->setParameters($this->parameters);
-        }
+        $view = $this->createWidget();
+        $view->forceViewDataTable($visualization);
 
         return $view;
     }

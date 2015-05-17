@@ -47,7 +47,7 @@ class GetReferrerType extends Base
         return array(
             $this->createWidget(), // makes a default view
             $this->createEvolutionWidget($defaultColumns = array('nb_visits')),
-            $this->createSparklinesWidget($apiMethodToGetSparklines = 'Referrers.getSparklines')
+            $this->createCustomWidget('Referrers', 'getSparklines')
         );
     }
 

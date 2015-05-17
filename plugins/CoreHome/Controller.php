@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\CoreHome;
 
 use Exception;
+use Piwik\API\Proxy;
 use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\Date;
@@ -17,7 +18,7 @@ use Piwik\Menu\MenuReporting;
 use Piwik\Notification\Manager as NotificationManager;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
-use Piwik\Plugin\ReportView;
+use Piwik\Plugin\ReportViewConfig;
 use Piwik\Plugins\CoreHome\DataTableRowAction\MultiRowEvolution;
 use Piwik\Plugins\CoreHome\DataTableRowAction\RowEvolution;
 use Piwik\Plugins\CorePluginsAdmin\MarketplaceApiClient;
@@ -30,6 +31,7 @@ use Piwik\Url;
 use Piwik\View;
 use Piwik\ViewDataTable\Manager as ViewDataTableManager;
 use Piwik\Plugin\Widgets as PluginWidgets;
+use Piwik\ViewDataTable\Factory as ViewDataTableFactory;
 
 class Controller extends \Piwik\Plugin\Controller
 {
@@ -56,13 +58,6 @@ class Controller extends \Piwik\Plugin\Controller
         $this->checkSitePermission();
 
         $report->checkIsEnabled();
-
-        $id = Common::getRequestVar('id', 'default', 'string');
-        foreach ($report->getWidgets() as $widget) {
-            if ($widget->getId() === $id) {
-                return $widget->render();
-            }
-        }
 
         return $report->render();
     }
