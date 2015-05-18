@@ -2,7 +2,7 @@
     <ul class="Menu-tabList">
         <li ng-repeat="category in menu | orderBy:'order'" >
             <a class="menuItem" ng-click="loadSubcategory(category.subcategories[0])">
-                {{ category.category }}
+                {{ category.name }}
             </a>
             <ul>
                 <li ng-repeat="subcategory in category.subcategories | orderBy:'order'">

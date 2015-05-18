@@ -12,6 +12,7 @@ use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\Controller;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
+use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
 use Piwik\Plugins\Referrers\Columns\Keyword;
 use Piwik\Tracker\Visit;
 
@@ -26,17 +27,25 @@ class GetKeywords extends Base
         $this->actionToLoadSubTables = 'getSearchEnginesFromKeywordId';
         $this->hasGoalMetrics = true;
         $this->order = 3;
+
         $this->subCategory = 'Referrers_Keywords';
     }
 
-    public function getWidgets()
+    public function configureWidgets(\Piwik\Widget\WidgetsList $widgetsList, \Piwik\Report\ReportWidgetFactory $factory)
     {
-        return array(
-            $this->createWidget(),
-            $this->createEvolutionWidget(),
-            $this->createCustomWidget('Referrers', 'allReferrers')
-                 ->setSubCategory('All Referrers')
-                 ->setOrder(10),
+        $widgetsList->addToContainerWidget('Goals_Goals', $factory->createWidget());
+        $widgetsList->addToContainerWidget('Events', $factory->createWidget());
+
+        $widgetsList->addWidget($factory->createWidget());
+        $widgetsList->addWidget(
+            $factory->createWidget()
+                    ->forceViewDataTable(Evolution::ID)
+                    ->addParameters(array('columns' => $defaultColumns = array()))
+        );
+
+        $widgetsList->addWidget(
+            $factory->createCustomWidget('Referrers', 'allReferrers')
+                    ->setOrder(10)
         );
     }
 

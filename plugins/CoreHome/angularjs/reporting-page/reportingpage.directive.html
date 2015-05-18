@@ -11,27 +11,13 @@
         <div ng-include="sparklineReport.html_url"></div>
     </div>
 
-    <div ng-if="(reports | length) == 1" ng-repeat="report in reports">
-        <h2 ng-if="report.name" piwik-enriched-headline>{{ report.name }}</h2>
-        <div ng-include="report.html_url"></div>
-    </div>
+    <div ng-repeat="widget in widgets">
+        <div ng-if="!widget.group" ng-repeat="widget in widgets" piwik-widget widget="widget"></div>
 
-    <div ng-if="(reports | length) > 1" >
-        <div class="row">
-            <div class="col-md-6">
-                <div ng-repeat="report in reports" ng-if="$even">
-                    <h2 ng-if="report.name" piwik-enriched-headline>{{ report.name }}</h2>
-                    <div ng-include="report.html_url"></div>
-                </div>
+        <div ng-if="widget.group" class="row">
+            <div class="col-md-6" ng-repeat="widgetInGroup in widget.group">
+                <div piwik-widget widget="widgetInGroup"></div>
             </div>
-
-            <div class="col-md-6">
-                <div ng-repeat="report in reports" ng-if="$odd">
-                    <h2 ng-if="report.name" piwik-enriched-headline>{{ report.name }}</h2>
-                    <div ng-include="report.html_url"></div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>

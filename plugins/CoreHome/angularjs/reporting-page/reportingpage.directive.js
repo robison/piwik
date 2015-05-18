@@ -23,27 +23,10 @@
             compile: function (element, attrs) {
 
                 return function (scope, element, attrs, ngModel) {
-                    scope.page = {};
-
-                    function getReportUrl(report) {
-                        var params_vals = report.widget_url.substr(1).split("&");
-
-                        // available in global scope
-                        var currentHashStr = $location.path();
-
-                        if (currentHashStr.length != 0) {
-                            for (var i = 0; i < params_vals.length; i++) {
-                                currentHashStr = broadcast.updateParamValue(params_vals[i], currentHashStr);
-                            }
-                        }
-
-                        return '?' + currentHashStr.substr(1);
-                    }
 
                     scope.renderPage = function (init) {
-                        scope.page = {};
-                        scope.reports = [];
-                        scope.pageContentUrl = '';
+                        scope.widgets = [];
+                        scope.pageContentUrl  = '';
                         scope.evolutionReport = '';
                         scope.sparklineReport = '';
 
@@ -64,25 +47,48 @@
                         // here for even faster performance
                         // could also extract it in service could solve it as well
                         piwikApi.fetch({
-                            method: 'API.getReportViewMetadata',
-                            category: category,
-                            subcategory: subcategory
+                            method: 'API.getCategorizedWidgetMetadata',
+                            categoryId: category,
+                            subcategoryId: subcategory
                         }).then(function (response) {
-                            var reports = [];
-                            angular.forEach(response.reports, function (report) {
-                                report.html_url = getReportUrl(report);
-
-                                if (report.viewDataTable === 'graphEvolution') {
-                                    scope.evolutionReport = report;
-                                } else if (report.viewDataTable === 'sparklines') {
-                                    scope.sparklineReport = report;
+                            var widgets = [];
+                            angular.forEach(response.widgets, function (widget) {
+                                if (widget.viewDataTable && widget.viewDataTable === 'graphEvolution') {
+                                    scope.evolutionReport = widget;
+                                } else if (widget.viewDataTable && widget.viewDataTable === 'sparklines') {
+                                    widget.sparklineReport = widget;
                                 } else {
-                                    reports.push(report);
+                                    widgets.push(widget);
                                 }
                             });
 
-                            scope.page = response;
-                            scope.reports = reports;
+                            // todo sort widgets by order?
+
+                            var groupedWidgets = [];
+
+                            if (widgets.length === 1) {
+                                // if there is only one widget, we always display it full width
+                                groupedWidgets = widgets;
+                            } else {
+                                for (var i = 0; i < widgets.length; i++) {
+                                    var widget = widgets[i];
+
+                                    if (widget.isContainer) {
+                                        groupedWidgets.push(widget);
+                                    } else {
+                                        var group = [widget];
+                                        // we move widgets into groups of 2 (the last one before a container can only contain 1)
+                                        if (widgets[i+1] && !widgets[i+1].isContainer) {
+                                            i++;
+                                            group.push(widgets[i]);
+                                        }
+
+                                        groupedWidgets.push({group: group});
+                                    }
+                                }
+                            }
+
+                            scope.widgets = groupedWidgets;
                         });
                     }
 

@@ -42,12 +42,18 @@ class GetReferrerType extends Base
         return HtmlTable\AllColumns::ID;
     }
 
-    public function getWidgets()
+    public function configureWidgets(\Piwik\Widget\WidgetsList $widgetsList, \Piwik\Report\ReportWidgetFactory $factory)
     {
-        return array(
-            $this->createWidget(), // makes a default view
-            $this->createEvolutionWidget($defaultColumns = array('nb_visits')),
-            $this->createCustomWidget('Referrers', 'getSparklines')
+        $widgetsList->addWidget($factory->createWidget());
+        $widgetsList->addWidget(
+            $factory->createWidget()
+                ->forceViewDataTable(Evolution::ID)
+                ->addParameters(array('columns' => $defaultColumns = array('nb_visits')))
+        );
+
+        $widgetsList->addWidget(
+            $factory->createCustomWidget('Referrers', 'getSparklines')
+                ->setOrder(10)
         );
     }
 

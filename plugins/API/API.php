@@ -18,17 +18,25 @@ use Piwik\DataTable\Filter\ColumnDelete;
 use Piwik\DataTable\Row;
 use Piwik\Date;
 use Piwik\IP;
+use Piwik\Menu\MenuReporting;
 use Piwik\Metrics;
 use Piwik\Period;
 use Piwik\Period\Range;
 use Piwik\Piwik;
+use Piwik\Plugin\Category;
 use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugin\Report;
+use Piwik\Plugin\SubCategory;
+use Piwik\Plugin\Widget;
 use Piwik\Plugins\API\DataTable\MergeDataTables;
 use Piwik\Plugins\CoreAdminHome\CustomLogo;
+use Piwik\Report\ReportWidgetConfig;
+use Piwik\Report\ReportWidgetFactory;
 use Piwik\Segment\SegmentExpression;
 use Piwik\Translation\Translator;
 use Piwik\Version;
+use Piwik\Widget\WidgetConfig;
+use Piwik\Widget\WidgetContainerConfig;
 use Piwik\WidgetsList;
 
 require_once PIWIK_INCLUDE_PATH . '/core/Config.php';
@@ -383,32 +391,75 @@ class API extends \Piwik\Plugin\API
         return $flat;
     }
 
-    // public function getCategoryMetadata($idSite)
-    public function getReportViewMetadata($idSite, $category, $subcategory)
+    private function getInitialWidgetsList($idSite)
     {
-        $category = urldecode($category);
-        $subcategory = urldecode($subcategory);
+        $list = new \Piwik\Widget\WidgetsList();
 
-        foreach ($this->getReportViewsMetadata($idSite) as $page) {
-            if ($page['category'] === $category) {
-                foreach ($page['subcategories'] as $subcat) {
-                    if ($subcat['name'] === $subcategory) {
-                        return $subcat;
-                    }
-                }
-                return;
-            }
+        $widgets = Widget::getAllWidgetConfigurations();
+
+        foreach ($widgets as $widget) {
+            $list->addWidget($widget);
         }
+
+        foreach (Widget::getAllWidgetClassNames() as $widgetClass) {
+            $widgetClass::configureWidgetsList($list);
+        }
+
+        $reports = Report::getAllReports();
+        foreach ($reports as $report) {
+            $factory = new ReportWidgetFactory($report);
+            $report->configureWidgets($list, $factory);
+        }
+
+        Piwik::postEvent('Widgets.filterWidgets', array($list));
+
+        return $list;
     }
 
     // public function getCategoryMetadata($idSite)
-    public function getReportViewsMetadata($idSite)
+    public function getCategorizedWidgetMetadata($idSite, $categoryId, $subcategoryId)
     {
-        // this logic already allows any plugin to overwrite any core category and any core subcategory
-        $categories    = Report\Category::getAllCategories();
-        $subcategories = Report\SubCategory::getAllSubCategories();
+        $categoryId    = urldecode($categoryId);
+        $subcategoryId = urldecode($subcategoryId);
 
-        /** @var Report\Category[] $all */
+        $widgetsList = $this->getInitialWidgetsList($idSite);
+
+        $filtered = array();
+        foreach ($widgetsList->getWidgets() as $widget) {
+            if ($widget->getCategory() === $categoryId && $widget->getSubCategory() === $subcategoryId) {
+                $filtered[] = $widget;
+            }
+        }
+
+        $categories  = $this->moveWidgetsIntoCategories($filtered);
+        $categories  = $this->buildReportWidgetsMetadata($categories);
+
+        if (!empty($categories)) {
+            $category = array_shift($categories);
+
+            return array_shift($category['subcategories']);
+        }
+    }
+
+    public function getCategorizedWidgetsMetadata($idSite)
+    {
+        $widgetsList = $this->getInitialWidgetsList($idSite);
+        $categories  = $this->moveWidgetsIntoCategories($widgetsList->getWidgets());
+        $categories  = $this->buildReportWidgetsMetadata($categories);
+
+        return array('categories' => $categories);
+    }
+
+    /**
+     * @param WidgetConfig[] $widgetConfigs
+     * @return Category[]
+     */
+    private function moveWidgetsIntoCategories($widgetConfigs)
+    {
+        $categories    = Category::getAllCategories();
+        $subcategories = SubCategory::getAllSubCategories();
+
+        /** @var Category[] $all */
         $all = array();
         foreach ($categories as $category) {
             $all[$category->getName()] = $category;
@@ -421,7 +472,7 @@ class API extends \Piwik\Plugin\API
                 return;
             }
             if (!isset($all[$category])) {
-                $all[$category] = new Report\Category();
+                $all[$category] = new Category();
                 $all[$category]->setName($category);
             }
 
@@ -429,85 +480,119 @@ class API extends \Piwik\Plugin\API
         }
 
         // move reports into categories/subcategories and create missing ones if needed
-        $reports = Report::getAllReports();
-        foreach ($reports as $report) {
-            foreach ($report->getWidgets() as $reportView) {
+        foreach ($widgetConfigs as $widgetConfig) {
+            $category    = $widgetConfig->getCategory();
+            $subcategory = $widgetConfig->getSubCategory();
 
-                $category    = $reportView->getCategory();
-                $subcategory = $reportView->getSubCategory();
-
-                if (!$category || !$subcategory) {
-                    continue;
-                }
-
-                if (!isset($all[$category])) {
-                    $all[$category] = new Report\Category();
-                    $all[$category]->setName($category);
-                }
-
-                if (!$all[$category]->hasSubCategory($subcategory)) {
-                    $subcat = new Report\SubCategory();
-                    $subcat->setName($subcategory);
-                    $all[$category]->addSubCategory($subcat);
-                }
-
-                $all[$category]->getSubCategory($subcategory)->addReportView($reportView);
+            if (!$category || !$subcategory) {
+                continue;
             }
+
+            if (!isset($all[$category])) {
+                $all[$category] = new Category();
+                $all[$category]->setName($category);
+            }
+
+            if (!$all[$category]->hasSubCategory($subcategory)) {
+                $subcat = new SubCategory();
+                $subcat->setName($subcategory);
+                $all[$category]->addSubCategory($subcat);
+            }
+
+            $all[$category]->getSubCategory($subcategory)->addWidgetConfig($widgetConfig);
         }
 
-        // this will allow to add goal manager etc
-        Piwik::postEvent('API.getReportViews', array(&$all));
+        return $all;
+    }
 
-        // todo should we maybe iterate over all widgets as well to move optionally widgets to pages?
-
+    /**
+     * @param Category[] $categories
+     * @return array
+     */
+    private function buildReportWidgetsMetadata($categories)
+    {
         // format output, todo they need to be sorted by order!
-        $entry = array();
-        foreach ($all as $category) {
+        $metadata = array();
+
+        foreach ($categories as $category) {
 
             $ca = array(
-                'category' => Piwik::translate($category->getName()),
+                'id' => $category->getId(),
+                'name' => Piwik::translate($category->getName()),
                 'order' => $category->getOrder(),
                 'subcategories' => array()
             );
 
             foreach ($category->getSubCategories() as $subcategory) {
                 $cat = array(
+                    'id' => $subcategory->getId(),
                     'name' => Piwik::translate($subcategory->getName()),
                     'order'   => $subcategory->getOrder(),
-                    'reports' => array(),
+                    'widgets' => array(),
                 );
 
-                foreach ($subcategory->getReportViews() as $reportView) {
-                    /** @var \Piwik\Plugin\ReportViewConfig $reportView */
+                foreach ($subcategory->getWidgetConfigs() as $widget) {
+                    /** @var \Piwik\Widget\WidgetConfig $widget */
                     $config = array(
-                        'name' => $reportView->getName(),
-                        'module' => $reportView->getModule(),
-                        'action' => $reportView->getAction(),
-                        'parameters' => $reportView->getParameters(),
-                        'viewDataTable' => $reportView->getDefaultView(),
-                        'widget_url' => '?' . http_build_query($reportView->getParameters()),
+                        'name' => $widget->getName(),
+                        'module' => $widget->getModule(),
+                        'action' => $widget->getAction(),
+                        'parameters' => $widget->getParameters(),
+                        'widget_url' => '?' . http_build_query($widget->getParameters()),
                         'processed_url' => '?' . http_build_query(array(
-                            'module' => 'API',
-                            'method' => 'API.getProcessedReport',
-                            'apiModule' => $reportView->getModule(),
-                            'apiAction' => $reportView->getAction()
-                        ))
+                                'module' => 'API',
+                                'method' => 'API.getProcessedReport',
+                                'apiModule' => $widget->getModule(),
+                                'apiAction' => $widget->getAction()
+                            ))
                     );
 
-                    $cat['reports'][] = $config;
+                    if ($widget instanceof ReportWidgetConfig) {
+                        // todo this is rather bad, there should be a method that is implemented by widgetConfig to add "configs".
+                        $config['viewDataTable'] = $widget->getDefaultView();
+                        $config['isReport'] = true;
+                    }
+
+                    if ($widget instanceof WidgetContainerConfig) {
+                        $config['layout'] = $widget->getLayout();
+                        $config['isContainer'] = true;
+
+                        // todo we would extract that code into a method and reuse it with above
+                        $children = array();
+                        foreach ($widget->getWidgetConfigs() as $widgetConfig) {
+                            $child = array(
+                                'name' => $widgetConfig->getName(),
+                                'module' => $widgetConfig->getModule(),
+                                'action' => $widgetConfig->getAction(),
+                                'parameters' => $widgetConfig->getParameters(),
+                                'viewDataTable' => $widgetConfig->getDefaultView(),
+                                'widget_url' => '?' . http_build_query($widgetConfig->getParameters()),
+                                'processed_url' => '?' . http_build_query(array(
+                                        'module' => 'API',
+                                        'method' => 'API.getProcessedReport',
+                                        'apiModule' => $widgetConfig->getModule(),
+                                        'apiAction' => $widgetConfig->getAction()
+                                    ))
+                            );
+                            $children[] = $child;
+                        }
+                        $config['children'] = $children;
+                    }
+
+                    $cat['widgets'][] = $config;
                 }
 
-                if (!empty($cat['reports'])) {
+                if (!empty($cat['widgets'])) {
                     $ca['subcategories'][] = $cat;
                 }
             }
 
             if (!empty($ca['subcategories'])) {
-                $entry[] = $ca;
+                $metadata[] = $ca;
             }
         }
 
-        return $entry;
+        return $metadata;
     }
 
     /**

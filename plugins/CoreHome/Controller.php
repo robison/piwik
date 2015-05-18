@@ -18,7 +18,7 @@ use Piwik\Menu\MenuReporting;
 use Piwik\Notification\Manager as NotificationManager;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
-use Piwik\Plugin\ReportViewConfig;
+use Piwik\Plugin\ReportWidgetConfig;
 use Piwik\Plugins\CoreHome\DataTableRowAction\MultiRowEvolution;
 use Piwik\Plugins\CoreHome\DataTableRowAction\RowEvolution;
 use Piwik\Plugins\CorePluginsAdmin\MarketplaceApiClient;

@@ -8,7 +8,7 @@
  */
 namespace Piwik\Plugins\CoreHome\Reports\Categories;
 
-use Piwik\Plugin\Report\Category;
+use Piwik\Plugin\Category;
 
 class ActionsCategory extends Category
 {

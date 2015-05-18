@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\Contents;
 
+use Piwik\Piwik;
 use Piwik\Plugin\Report;
 use Piwik\View;
 
@@ -25,7 +26,7 @@ class Controller extends \Piwik\Plugin\Controller
 
         foreach($reports as $report) {
             $reportsView->addReport(
-                $report->getCategory(),
+                Piwik::translate($report->getCategory()),
                 $report->getName(),
                 'Contents.' . Report::PREFIX_ACTION_IN_MENU . ucfirst($report->getAction())
             );

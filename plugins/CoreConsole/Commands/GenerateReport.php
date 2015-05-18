@@ -10,6 +10,7 @@
 namespace Piwik\Plugins\CoreConsole\Commands;
 
 use Piwik\Columns\Dimension;
+use Piwik\Piwik;
 use Piwik\Plugin\Manager;
 use Piwik\Plugin\Report;
 use Piwik\Translate;
@@ -192,7 +193,7 @@ class GenerateReport extends GeneratePluginBase
         $categories = array();
         foreach (Report::getAllReports() as $report) {
             if ($report->getCategory()) {
-                $categories[] = $report->getCategory();
+                $categories[] = Piwik::translate($report->getCategory());
             }
         }
         $categories = array_values(array_unique($categories));

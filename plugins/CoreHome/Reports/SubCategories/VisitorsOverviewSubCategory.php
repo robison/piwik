@@ -8,13 +8,20 @@
  */
 namespace Piwik\Plugins\CoreHome\Reports\SubCategories;
 
-use Piwik\Plugin\Report;
-use Piwik\Plugin\Report\SubCategory;
+use Piwik\Plugin\SubCategory;
 
 class VisitorsOverviewSubCategory extends SubCategory
 {
-    protected $category = 'Visitors';
-    protected $name = 'Overview';
+    protected $category = 'General_Visitors';
+    protected $name = 'General_Overview';
+    protected $order = 99;
 
+
+
+
+    // protected $layout = '33-33-33';
+    // protected $layout = '50-50';
+    // protected $layout = '100';
+    // protected $layout = 'ByDimension';
 
 }

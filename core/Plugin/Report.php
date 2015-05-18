@@ -21,8 +21,8 @@ use Piwik\Metrics;
 use Piwik\Cache as PiwikCache;
 use Piwik\Piwik;
 use Piwik\Plugin\Manager as PluginManager;
-use Piwik\Plugin\Report\Category;
-use Piwik\Plugin\Report\SubCategory;
+use Piwik\Plugin\Category;
+use Piwik\Plugin\SubCategory;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
 use Piwik\WidgetsList;
@@ -240,8 +240,8 @@ class Report
      */
     final public function __construct()
     {
-        $classname    = get_class($this);
-        $parts        = explode('\\', $classname);
+        $classname = get_class($this);
+        $parts = explode('\\', $classname);
 
         if (5 === count($parts)) {
             $this->module = $parts[2];
@@ -283,9 +283,9 @@ class Report
      * containing a message that will be displayed to the user. You can overwrite this message in case you want to
      * customize the error message. Eg.
      * ```
-     if (!$this->isEnabled()) {
-         throw new Exception('Setting XYZ is not enabled or the user has not enough permission');
-     }
+     * if (!$this->isEnabled()) {
+     * throw new Exception('Setting XYZ is not enabled or the user has not enough permission');
+     * }
      * ```
      * @throws \Exception
      * @api
@@ -312,7 +312,7 @@ class Report
      * Defaults to false
      * @return bool
      */
-    public function alwaysUseDefaultViewDataTable ()
+    public function alwaysUseDefaultViewDataTable()
     {
         return false;
     }
@@ -360,17 +360,19 @@ class Report
         return $view->render();
     }
 
+    public function configureWidgets(\Piwik\Widget\WidgetsList $widgetsList, \Piwik\Report\ReportWidgetFactory $factory)
+    {
+        $widgetsList->addWidget($factory->createWidget());
+    }
+
     /**
      * By default a widget will be configured for this report if a {@link $widgetTitle} is set. If you want to customize
      * the way the widget is added or modify any other behavior you can overwrite this method.
      * @param WidgetsList $widget
-     * @api
+     * @deprecated since Piwik 2.15
      */
     public function configureWidget(WidgetsList $widget)
     {
-        foreach ($this->getWidgets() as $view) {
-            $widget->add($view->getCategory(), $view->getName(), $view->getModule(), $view->getAction(), $view->getParameters());
-        }
     }
 
     /**
@@ -379,27 +381,10 @@ class Report
      * in case you need to add additional url properties beside module and action which are added by default.
      * @param \Piwik\Menu\MenuReporting $menu
      * @api
+     * @deprecated since Piwik 2.15
      */
     public function configureReportingMenu(MenuReporting $menu)
     {
-        if (!$this->isEnabled()) {
-            return;
-        }
-
-        foreach ($this->getWidgets() as $widget) {
-            // todo this should all be done in CoreHome or API\API as we there can access getReportViewMetadata API
-            // and core should not know anything that CoreHome.renderPage renders a page etc.
-            if ($widget->getCategory() && $widget->getSubCategory()) {
-                $menu->addItem(
-                    $widget->getCategory(),
-                    $widget->getSubCategory(),
-                    array('module' => 'API',
-                          'method' => 'API.getReportViewMetadata',
-                          'category' => $widget->getCategory(),
-                          'subcategory' => $widget->getSubCategory()),
-                    $this->order); // TODO subcategory->getOrder()
-            }
-        }
     }
 
     /**
@@ -496,66 +481,6 @@ class Report
     }
 
     /**
-     * Returns the array of all report views
-     *
-     * @return ReportViewConfig[]
-     * @api
-     */
-    public function getWidgets()
-    {
-        if ($this->menuTitle) {
-            return array($this->createWidget());
-        }
-
-        return array();
-    }
-
-    // actually, it should be createViews and it could just return any ViewInterface?!?
-    // we shouldn't name it reportView, maybe rather ReportViewConfig something with Routing? Or Widget?
-    protected function createWidget()
-    {
-        $view = new ReportViewConfig();
-        $view->setName($this->name);
-        $view->setCategory($this->category);
-        $view->setSubCategory($this->subCategory);
-        $view->setModule($this->module);
-        $view->setAction($this->action);
-
-        if ($this->parameters) {
-            $view->setParameters($this->parameters);
-        }
-
-        return $view;
-    }
-
-    protected function createCustomWidget($module, $action)
-    {
-        $view = $this->createWidget();
-        $view->setModule($module);
-        $view->setAction($action);
-
-        return $view;
-    }
-
-    // this cannot be here as it has knowledge of Evolution grap which is in a plugin!
-    protected function createEvolutionWidget($defaultColumns = array())
-    {
-        $view = $this->createWidget();
-        $view->forceViewDataTable(Evolution::ID);
-        $view->addParameters(array('columns' => $defaultColumns));
-
-        return $view;
-    }
-
-    protected function createFixedVisualizationWidget($visualization)
-    {
-        $view = $this->createWidget();
-        $view->forceViewDataTable($visualization);
-
-        return $view;
-    }
-
-    /**
      * Returns an array of metric documentations and their corresponding translations. Eg
      * `array('nb_visits' => 'If a visitor comes to your website for the first time or if he visits a page more than 30 minutes after...')`.
      * By default the given {@link $metrics} are used and their corresponding translations are looked up automatically.
@@ -636,11 +561,14 @@ class Report
      * {@link configureReportMetadata()}.
      * @return array
      * @ignore
+     *
+     * TODO we should move this out to API::getReportMetadata
      */
     protected function buildReportMetadata()
     {
         $report = array(
-            'category' => $this->getCategory(),
+            'category' => Piwik::translate($this->getCategory()),
+            'subcategory' => $this->getSubCategory() ? Piwik::translate($this->getSubCategory()) : null,
             'name'     => $this->getName(),
             'module'   => $this->getModule(),
             'action'   => $this->getAction()
@@ -753,6 +681,11 @@ class Report
         return $this->action;
     }
 
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
     /**
      * Get the translated name of the category the report belongs to.
      * @return string
@@ -764,7 +697,7 @@ class Report
             return $this->category->getName();
         }
 
-        return Piwik::translate($this->category);
+        return $this->category;
     }
 
     /**
@@ -778,7 +711,7 @@ class Report
             return $this->subCategory->getName();
         }
 
-        return Piwik::translate($this->subCategory);
+        return $this->subCategory;
     }
 
     /**

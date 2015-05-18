@@ -175,7 +175,7 @@ class Goals extends \Piwik\Plugin
         foreach (Report::getAllReports() as $report) {
             if ($report->hasGoalMetrics()) {
                 $reportsWithGoals[] = array(
-                    'category' => $report->getCategory(),
+                    'category' => Piwik::translate($report->getCategory()),
                     'name'     => $report->getName(),
                     'module'   => $report->getModule(),
                     'action'   => $report->getAction(),

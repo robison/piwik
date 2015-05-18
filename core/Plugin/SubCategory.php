@@ -5,10 +5,10 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
-namespace Piwik\Plugin\Report;
+namespace Piwik\Plugin;
 use Piwik\Plugin\Report;
-use Piwik\Piwik;
-use Piwik\Plugin\ReportViewConfig;
+use Piwik\Widget\WidgetConfig;
+use \Piwik\Plugin\Manager as PluginManager;
 
 /**
  * Base type for metric metadata classes that describe aggregated metrics. These metrics are
@@ -23,9 +23,9 @@ class SubCategory
     protected $name = '';
 
     /**
-     * @var \Piwik\Plugin\ReportViewConfig[]
+     * @var WidgetConfig[]
      */
-    protected $reportViews = array();
+    protected $widgets = array();
 
     protected $order = 99;
 
@@ -44,14 +44,14 @@ class SubCategory
         return $this->order;
     }
 
-    public function getReportViews()
+    public function getWidgetConfigs()
     {
-        return $this->reportViews;
+        return $this->widgets;
     }
 
-    public function addReportView(ReportViewConfig $report)
+    public function addWidgetConfig(WidgetConfig $widget)
     {
-        $this->reportViews[] = $report;
+        $this->widgets[] = $widget;
     }
 
     public function getName()
@@ -59,10 +59,16 @@ class SubCategory
         return $this->name;
     }
 
-    /** @return \Piwik\Plugin\Report\SubCategory[] */
+    public function getId()
+    {
+        return $this->name;
+    }
+
+    /** @return \Piwik\Plugin\SubCategory[] */
     public static function getAllSubCategories()
     {
-        $subcategories = \Piwik\Plugin\Manager::getInstance()->findMultipleComponents('Reports/SubCategories', '\\Piwik\\Plugin\\Report\\SubCategory');
+        $manager = PluginManager::getInstance();
+        $subcategories = $manager->findMultipleComponents('Reports/SubCategories', '\\Piwik\\Plugin\\Report\\SubCategory');
 
         $instances = array();
         foreach ($subcategories as $subcategory) {

@@ -50,24 +50,23 @@
                     };
 
                     piwikApi.bulkFetch([
-                        {method: 'API.getReportViewsMetadata'},
+                        {method: 'API.getCategorizedWidgetsMetadata'},
                         {method: 'Dashboard.getDashboards'}
                     ]).then(function (response) {
                         var menu = [];
 
-                        angular.forEach(response[0], function (page, key) {
-                            var category = page.category;
+                        angular.forEach(response[0].categories, function (category, key) {
+                            var categoryId = category.id;
 
-                            angular.forEach(page.subcategories, function (subcategory) {
-                                var name = subcategory.name;
-                                subcategory.html_url = 'module=Reporting&action=renderPage&category=' + category + '&subcategory='+ name;
+                            angular.forEach(category.subcategories, function (subcategory) {
+                                subcategory.html_url = 'module=CoreHome&action=index&category=' + categoryId + '&subcategory='+ subcategory.id;
                             });
 
-                            menu.push(page);
+                            menu.push(category);
                         });
 
                         var dashboards = {
-                            category: 'Dashboards',  // TODO use translation
+                            name: 'Dashboards',  // TODO use translation
                             order: 1,
                             subcategories: []
                         }
