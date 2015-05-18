@@ -2,12 +2,12 @@
 mbstring.func_overload = 0
 
 [database]
-host = $database_host
-username =$database_user
-password = $database_password
-dbname = $database_name
+host = %database_host%
+username = %database_user%
+password = %database_password%
+dbname = %database_name%
 tables_prefix = piwik_
-port = 3306
+port = %database_port%
 adapter = PDO\MYSQL
 type = InnoDB
 schema = Mysql
