@@ -1,0 +1,7 @@
+{
+  "name": "Piwik for Heroku",
+  "description": "Web analytics on Heroku",
+  "repository": "https://github.com/robison/piwik",
+  "keywords": ["piwik", "web", "analytics"],
+  "addons": [ "papertrail:choklad","cleardb:ignite" ]
+}

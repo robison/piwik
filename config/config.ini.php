@@ -1,22 +1,24 @@
-[General]
-trusted_hosts[] = "hidden-harbor-4647.herokuapp.com"
-session_save_handler = dbtable
+<?php
+    $db = parse_url(getenv('CLEARDB_DATABASE_URL'));
 
-[database]
-host = "us-cdbr-iron-east-02.cleardb.net"
-username = "b1b5ef915e1b6f"
-password = "5e89decc"
-dbname = "heroku_51c3173c53f5f4b"
-tables_prefix = "piwik_"
-port = 3306
+    $database_host = $db['host'];
+    $database_port = $db['port'];
+    $database_name = substr($db["path"], 1);
+    $database_user = $db['user'];
+    $database_pass = $db['pass'];
+    echo "[database]";
+    echo "host = " . ini_get('database_host') . "\n";
+    echo "username = " . ini_get('database_user') . "\n";
+    echo "password = " . ini_get('database_pass') . "\n";
+    echo "dbname = " . ini_get('database_name') . "\n";
+    echo "port = " . ini_get('database_port') . "\n";
+?>
 adapter = PDO\MYSQL
 type = InnoDB
 schema = Mysql
 
-[superuser]
-login = "admin"
-password = "beerpong"
-email = "robbie@weebly.com"
+[General]
+session_save_handler = dbtable
 
 Plugins[] = "VisitorGenerator"
 
