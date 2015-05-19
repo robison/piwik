@@ -9,9 +9,7 @@
     echo "dbname = " . substr($db['path'], 1) . "\n";
     echo "port = " . $db['port'] . "\n";
 ?>
-adapter = PDO\MYSQL
-type = InnoDB
-schema = Mysql
+charset = "utf8"
 
 [General]
 session_save_handler = dbtable
