@@ -1,5 +1,6 @@
-[General] 
+[General]
 trusted_hosts[] = "hidden-harbor-4647.herokuapp.com"
+session_save_handler = dbtable
 
 [database]
 host = "us-cdbr-iron-east-02.cleardb.net"
@@ -17,5 +18,6 @@ login = "admin"
 password = "beerpong"
 email = "robbie@weebly.com"
 
-Plugins[] = VisitorGenerator
+[Plugins]
+Plugins[] = "VisitorGenerator"
 
