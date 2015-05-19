@@ -1,5 +1,5 @@
 [General] 
-trusted_hosts[] = "docs.weebly.net"
+trusted_hosts[] = "hidden-harbor-4647.herokuapp.com"
 
 [database]
 host = "us-cdbr-iron-east-02.cleardb.net"
