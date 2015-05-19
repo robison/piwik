@@ -1,13 +1,16 @@
 <?php
     $db = parse_url(getenv('CLEARDB_DATABASE_URL'));
 
-    $database_pass = $db['pass'];
-    echo "[database]" . "\n";
-    echo "host = " . $db['host'] . "\n";
-    echo "username = " . $db['user'] . "\n";
-    echo "password = " . $db['pass'] . "\n";
-    echo "dbname = " . substr($db["path"], 1) . "\n";
+    define('DBHOST', $db['host']);
+    define('DBUSER', $db['user']);
+    define('DBPASS', $db['pass']);
+    define('DBNAME', substr($db["path"], 1));
 ?>
+[database]
+host = $DBHOST
+username = $DBUSER
+password = $DBPASS
+dbname = $DBNAME
 port = 3306
 adapter = PDO\MYSQL
 type = InnoDB
