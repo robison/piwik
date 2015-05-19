@@ -102,18 +102,11 @@
             "Piwik\\Composer\\ScriptHandler::cleanXhprof"
         ],
         "post-update-cmd": [
-            "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
             "Piwik\\Composer\\ScriptHandler::buildXhprof"
         ],
         "post-install-cmd": [
-            "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
+            "php config/create_config.php >> config/config.ini.php"
             "Piwik\\Composer\\ScriptHandler::buildXhprof"
         ]
     },
-    "extra": {
-        "incenteev-parameters": {
-            "file": "config/parameters.yml",
-            "keep-outdated": true
-        }
-    }
 }
