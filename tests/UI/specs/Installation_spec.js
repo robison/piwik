@@ -82,7 +82,7 @@ describe("Installation", function () {
 
     it("should display the superuser configuration page when next is clicked on the tables created page", function (done) {
         expect.screenshot("superuser").to.be.capture(function (page) {
-            page.click('.submit');
+            page.click('.next-step .btn');
         }, done);
     });
 
