@@ -6,12 +6,12 @@
     $database_name = substr($db["path"], 1);
     $database_user = $db['user'];
     $database_pass = $db['pass'];
-    echo "[database]";
-    echo "host = " . ini_get('database_host') . "\n";
-    echo "username = " . ini_get('database_user') . "\n";
-    echo "password = " . ini_get('database_pass') . "\n";
-    echo "dbname = " . ini_get('database_name') . "\n";
-    echo "port = " . ini_get('database_port') . "\n";
+    echo "[database]" . "\n";
+    echo "host = " . $database_host . "\n";
+    echo "username = " . $database_user . "\n";
+    echo "password = " . $database_pass . "\n";
+    echo "dbname = " . $database_name . "\n";
+    echo "port = " . $database_port . "\n";
 ?>
 adapter = PDO\MYSQL
 type = InnoDB
