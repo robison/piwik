@@ -55,7 +55,6 @@
         "pear/pear_exception": "~1.0.0",
         "pear/pear-core-minimal": "~1.9.5",
         "piwik/referrer-spam-blacklist": "~1.0",
-        "incenteev/composer-parameter-handler": "~2.0",
         "ext-mbstring": "*",
         "ext-gd": "*"
     },
@@ -102,7 +101,6 @@
             "Piwik\\Composer\\ScriptHandler::cleanXhprof"
         ],
         "post-update-cmd": [
-            "
             "Piwik\\Composer\\ScriptHandler::buildXhprof"
         ],
         "post-install-cmd": [
