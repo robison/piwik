@@ -1,5 +1,5 @@
 <?php
-    define('db', parse_url(getenv('CLEARDB_DATABASE_URL')));
+    $db = parse_url(getenv('CLEARDB_DATABASE_URL'));
 
     define('DBHOST', $db['host']);
     define('DBUSER', $db['user']);
