@@ -11,5 +11,3 @@
 ?>
 charset = "utf8"
 
-[General]
-session_save_handler = dbtable
