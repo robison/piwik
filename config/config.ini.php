@@ -17,6 +17,5 @@ login = "admin"
 password = "beerpong"
 email = "robbie@weebly.com"
 
-[Plugins]
 Plugins[] = VisitorGenerator
 
