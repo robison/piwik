@@ -124,7 +124,7 @@ describe("Installation", function () {
 
     it("should display the congratulations page when next is clicked on the javascript tracking page", function (done) {
         expect.screenshot("congrats").to.be.capture(function (page) {
-            page.click('.submit');
+            page.click('.next-step .btn');
         }, done);
     });
 
