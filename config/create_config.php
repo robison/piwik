@@ -9,6 +9,10 @@
     echo "dbname = " . substr($db['path'], 1) . "\n";
     echo "port = " . $db['port'] . "\n";
 ?>
+tables_prefix = "piwik_"
+adapter = PDO\MYSQL
+type = InnoDB
+schema = Mysql
 charset = "utf8"
 
 
