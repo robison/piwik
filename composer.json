@@ -56,7 +56,8 @@
         "pear/pear-core-minimal": "~1.9.5",
         "piwik/referrer-spam-blacklist": "~1.0",
         "ext-mbstring": "*",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "tecnick.com/tcpdf": "~6.0"
     },
     "require-dev": {
         "aws/aws-sdk-php": "2.7.1",
