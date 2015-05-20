@@ -105,7 +105,6 @@
         ],
         "post-install-cmd": [
             "php config/create_config.php >> config/common.config.ini.php",
-            "cp config/common.config.ini.php config/config.ini.php",
             "Piwik\\Composer\\ScriptHandler::buildXhprof"
         ]
     }
